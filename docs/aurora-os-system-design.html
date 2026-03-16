@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aurora OS — System Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   MANDATORY VIEWPORT BASE (from style-presets)
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; overflow-x: hidden; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+.slide {
+  width: 100vw; height: 100vh; height: 100dvh;
+  overflow: hidden; scroll-snap-align: start;
+  display: flex; flex-direction: column; position: relative;
+}
+.slide-content {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: center; max-height: 100%; overflow: hidden;
+  padding: var(--pad);
+}
+
+/* ============================================
+   AURORA DESIGN TOKENS
+   ============================================ */
+:root {
+  --bg:       #F7F4EF;
+  --ink:      #1A1714;
+  --muted:    #8B8175;
+  --accent:   #4338CA;
+  --accent2:  #C7D2FE;
+  --gold:     #D4A853;
+  --surface:  #FFFFFF;
+  --border:   rgba(26,23,20,0.10);
+  --green:    #059669;
+  --amber:    #D97706;
+  --red:      #DC2626;
+  --serif:    'Fraunces', serif;
+  --sans:     'DM Sans', sans-serif;
+  --mono:     'DM Mono', monospace;
+
+  --title-size: clamp(1.6rem, 5vw, 4rem);
+  --h2-size:    clamp(1.2rem, 3vw, 2.2rem);
+  --h3-size:    clamp(0.9rem, 2vw, 1.4rem);
+  --body-size:  clamp(0.7rem, 1.3vw, 1rem);
+  --small-size: clamp(0.6rem, 0.9vw, 0.8rem);
+  --pad:        clamp(1.5rem, 5vw, 5rem);
+}
+
+body { font-family: var(--sans); background: var(--bg); color: var(--ink); }
+
+/* ============================================
+   NAV & PROGRESS
+   ============================================ */
+#progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--border); z-index: 100;
+}
+#progress-bar {
+  height: 100%; background: var(--accent);
+  transition: width 0.4s ease; width: 0%;
+}
+#slide-counter {
+  position: fixed; bottom: 1.5rem; right: 2rem;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--muted); z-index: 100; letter-spacing: 0.1em;
+}
+#nav-dots {
+  position: fixed; right: 1rem; top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 100;
+}
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border); cursor: pointer;
+  transition: all 0.3s ease; border: 1.5px solid var(--muted);
+}
+.dot.active { background: var(--accent); border-color: var(--accent); transform: scale(1.4); }
+#kbd-hint {
+  position: fixed; bottom: 1.5rem; left: 2rem;
+  font-size: 11px; color: var(--muted); font-family: var(--mono);
+  z-index: 100;
+}
+
+/* ============================================
+   REVEAL ANIMATIONS
+   ============================================ */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-left { opacity: 0; transform: translateX(-24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+.reveal-scale { opacity: 0; transform: scale(0.94); transition: opacity 0.5s ease, transform 0.5s ease; }
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+/* Stagger delays */
+.d1 { transition-delay: 0.05s; } .d2 { transition-delay: 0.15s; }
+.d3 { transition-delay: 0.25s; } .d4 { transition-delay: 0.35s; }
+.d5 { transition-delay: 0.45s; } .d6 { transition-delay: 0.55s; }
+.d7 { transition-delay: 0.65s; } .d8 { transition-delay: 0.75s; }
+
+/* ============================================
+   SHARED PRIMITIVES
+   ============================================ */
+.tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: var(--small-size); font-weight: 600;
+  letter-spacing: 0.07em; text-transform: uppercase;
+}
+.tag-accent  { background: var(--accent2); color: var(--accent); }
+.tag-green   { background: #D1FAE5; color: var(--green); }
+.tag-amber   { background: #FEF3C7; color: var(--amber); }
+.tag-red     { background: #FEE2E2; color: var(--red); }
+.tag-gold    { background: #FEF9C3; color: #92400E; }
+
+.node-box {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: var(--small-size);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.node-box.accent-border { border-color: var(--accent); border-width: 2px; }
+.node-box.green-border  { border-color: var(--green); border-width: 2px; }
+.node-box.gold-border   { border-color: var(--gold); border-width: 2px; }
+
+/* ============================================
+   SLIDE 1 — COVER
+   ============================================ */
+#s1 { background: var(--ink); }
+#s1 .bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(67,56,202,0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(67,56,202,0.15) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridDrift 20s linear infinite;
+}
+@keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
+#s1 .glow { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(67,56,202,0.25) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); animation: pulse 4s ease-in-out infinite alternate; }
+@keyframes pulse { from { opacity: 0.5; transform: translate(-50%,-50%) scale(1); } to { opacity: 1; transform: translate(-50%,-50%) scale(1.1); } }
+#s1 .content { position: relative; z-index: 2; text-align: center; }
+#s1 h1 { font-family: var(--serif); font-size: var(--title-size); color: #F7F4EF; font-weight: 700; line-height: 1.1; }
+#s1 h1 em { font-style: italic; color: var(--gold); }
+#s1 .sub { color: rgba(247,244,239,0.6); font-size: var(--h3-size); margin-top: 1rem; font-weight: 300; }
+#s1 .meta { margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+#s1 .pill { padding: 6px 16px; border: 1px solid rgba(247,244,239,0.2); border-radius: 20px; color: rgba(247,244,239,0.7); font-size: var(--small-size); font-family: var(--mono); }
+
+/* ============================================
+   SLIDE 2 — ECOSYSTEM OVERVIEW
+   ============================================ */
+#s2 { background: var(--bg); }
+.eco-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 2rem);
+  width: 100%; max-width: 960px; margin: 0 auto;
+}
+.eco-col { display: flex; flex-direction: column; gap: clamp(6px, 1vw, 12px); }
+.eco-app {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: clamp(8px, 1.2vw, 14px) clamp(10px, 1.5vw, 18px);
+  position: relative;
+  transition: all 0.3s ease;
+}
+.eco-app:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(67,56,202,0.12); transform: translateX(-4px); }
+.eco-app .app-name { font-weight: 600; font-size: var(--body-size); color: var(--ink); }
+.eco-app .app-desc { font-size: var(--small-size); color: var(--muted); margin-top: 2px; }
+.eco-app .app-tag { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+
+.eco-center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.eco-center-box {
+  background: var(--accent);
+  color: white;
+  border-radius: 12px;
+  padding: clamp(12px, 2vw, 20px) clamp(14px, 2.5vw, 24px);
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(67,56,202,0.3);
+}
+.eco-center-box .label { font-family: var(--mono); font-size: var(--small-size); opacity: 0.7; text-transform: uppercase; letter-spacing: 0.1em; }
+.eco-center-box .name { font-family: var(--serif); font-size: var(--h3-size); font-weight: 700; margin-top: 4px; }
+
+.eco-arrow { color: var(--accent); font-size: clamp(1rem, 2vw, 1.6rem); opacity: 0.6; }
+
+.eco-right .eco-app:hover { transform: translateX(4px); }
+
+/* ============================================
+   SLIDE 3 — MONOREPO STRUCTURE
+   ============================================ */
+#s3 { background: var(--ink); }
+.mono-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1rem, 3vw, 3rem);
+  max-width: 900px; margin: 0 auto; width: 100%;
+}
+.mono-tree { font-family: var(--mono); font-size: var(--small-size); color: rgba(247,244,239,0.8); line-height: 1.9; }
+.mono-tree .dir  { color: var(--gold); font-weight: 500; }
+.mono-tree .file { color: rgba(247,244,239,0.55); }
+.mono-tree .pkg  { color: #A5B4FC; }
+.mono-tree .svc  { color: #6EE7B7; }
+.mono-tree .cfg  { color: #FCA5A5; }
+.mono-tree .indent { display: block; }
+
+.pkg-cards { display: flex; flex-direction: column; gap: clamp(6px, 1vw, 10px); }
+.pkg-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: clamp(8px,1.2vw,12px) clamp(10px,1.5vw,16px);
+  border-left: 3px solid;
+}
+.pkg-card.c-ui    { border-left-color: #A5B4FC; }
+.pkg-card.c-types { border-left-color: var(--gold); }
+.pkg-card.c-supa  { border-left-color: #6EE7B7; }
+.pkg-card.c-cfg   { border-left-color: #FCA5A5; }
+.pkg-card .pk-name { font-family: var(--mono); font-size: var(--small-size); font-weight: 500; }
+.pkg-card.c-ui    .pk-name { color: #A5B4FC; }
+.pkg-card.c-types .pk-name { color: var(--gold); }
+.pkg-card.c-supa  .pk-name { color: #6EE7B7; }
+.pkg-card.c-cfg   .pk-name { color: #FCA5A5; }
+.pkg-card .pk-desc { font-size: var(--small-size); color: rgba(247,244,239,0.5); margin-top: 3px; }
+.pkg-card .pk-exports { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.pk-ex { padding: 1px 7px; border-radius: 3px; font-family: var(--mono); font-size: 10px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+
+/* ============================================
+   SLIDE 4 — DATA FLOW (animated)
+   ============================================ */
+#s4 { background: var(--bg); }
+.flow-wrap {
+  width: 100%; max-width: 880px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: clamp(0.6rem, 1.5vw, 1.2rem);
+}
+.flow-row {
+  display: flex; align-items: center; gap: clamp(6px, 1.2vw, 14px);
+}
+.flow-node {
+  flex: 1; background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: clamp(8px,1.3vw,14px) clamp(10px,1.8vw,18px);
+  text-align: center;
+  position: relative;
+}
+.flow-node .fn-icon { font-size: clamp(1.2rem, 2.5vw, 2rem); display: block; }
+.flow-node .fn-name { font-weight: 600; font-size: var(--body-size); color: var(--ink); margin-top: 4px; }
+.flow-node .fn-sub  { font-size: var(--small-size); color: var(--muted); }
+.flow-node.highlight { border-color: var(--accent); border-width: 2px; box-shadow: 0 4px 20px rgba(67,56,202,0.15); }
+.flow-node.highlight-green { border-color: var(--green); border-width: 2px; box-shadow: 0 4px 20px rgba(5,150,105,0.12); }
+
+.flow-arrow {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; flex-shrink: 0; min-width: 60px;
+}
+.flow-line {
+  width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent2), var(--accent));
+  border-radius: 2px; position: relative; overflow: visible;
+}
+.flow-dot {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+  animation: flowMove 2s ease-in-out infinite;
+}
+.flow-dot.d-delay { animation-delay: 0.7s; }
+@keyframes flowMove { 0% { left: 0%; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+.flow-label { font-size: 9px; color: var(--muted); font-family: var(--mono); text-align: center; white-space: nowrap; }
+
+.flow-apps-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(6px, 1vw, 10px);
+}
+.app-bubble {
+  background: var(--accent);
+  color: white;
+  border-radius: 8px;
+  padding: clamp(6px,1vw,10px) clamp(8px,1.2vw,12px);
+  text-align: center;
+  font-size: var(--small-size);
+  font-weight: 600;
+}
+.app-bubble.green { background: var(--green); }
+.app-bubble.gold  { background: var(--gold); }
+.app-bubble.ink   { background: var(--ink); }
+
+/* ============================================
+   SLIDE 5 — SUPABASE SCHEMA
+   ============================================ */
+#s5 { background: var(--bg); }
+.schema-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 1.5vw, 14px);
+  max-width: 900px; margin: 0 auto; width: 100%;
+}
+.table-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.table-card .tc-header {
+  background: var(--ink);
+  color: #F7F4EF;
+  padding: clamp(6px,1vw,10px) clamp(8px,1.2vw,14px);
+  font-family: var(--mono);
+  font-size: var(--small-size);
+  font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+}
+.table-card .tc-header .tc-icon { opacity: 0.7; }
+.table-card.accent .tc-header { background: var(--accent); }
+.table-card.green  .tc-header { background: var(--green); }
+.table-card.gold   .tc-header { background: #92400E; }
+.table-card .tc-fields { padding: clamp(6px,0.8vw,10px) clamp(8px,1.2vw,12px); display: flex; flex-direction: column; gap: 3px; }
+.tc-field {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: var(--small-size); padding: 2px 0;
+  border-bottom: 1px solid rgba(26,23,20,0.04);
+}
+.tc-field:last-child { border-bottom: none; }
+.tc-field .fname { color: var(--ink); font-family: var(--mono); }
+.tc-field .ftype { color: var(--muted); font-size: 10px; }
+.tc-field .fkey { color: var(--accent); font-size: 9px; font-weight: 700; background: var(--accent2); padding: 1px 5px; border-radius: 3px; }
+
+.schema-relation {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  flex-wrap: wrap;
+}
+.rel-line {
+  height: 2px; width: 40px;
+  background: linear-gradient(90deg, var(--border), var(--accent2));
+  border-radius: 2px;
+}
+.rel-label { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+
+/* ============================================
+   SLIDE 6 — SIMPTION SYNC PIPELINE
+   ============================================ */
+#s6 { background: var(--ink); }
+.pipeline-wrap {
+  max-width: 860px; margin: 0 auto; width: 100%;
+  display: flex; flex-direction: column; gap: clamp(0.8rem, 2vw, 1.6rem);
+}
+.pipeline-row {
+  display: flex; align-items: stretch; gap: clamp(6px, 1.2vw, 12px);
+}
+.pipe-step {
+  flex: 1; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: clamp(8px,1.2vw,14px) clamp(10px,1.5vw,16px);
+  border-top: 3px solid;
+  position: relative;
+}
+.pipe-step.s-cron   { border-top-color: var(--gold); }
+.pipe-step.s-edge   { border-top-color: #A5B4FC; }
+.pipe-step.s-play   { border-top-color: #6EE7B7; }
+.pipe-step.s-db     { border-top-color: #F9A8D4; }
+.pipe-step.s-apps   { border-top-color: var(--accent2); }
+.pipe-step .ps-num  { font-family: var(--mono); font-size: 10px; opacity: 0.4; margin-bottom: 4px; }
+.pipe-step .ps-name { font-weight: 600; font-size: var(--body-size); color: rgba(247,244,239,0.9); }
+.pipe-step .ps-sub  { font-size: var(--small-size); color: rgba(247,244,239,0.45); margin-top: 3px; }
+.pipe-step .ps-tag  { position: absolute; top: -1px; right: 10px; font-family: var(--mono); font-size: 9px; padding: 2px 7px; border-radius: 0 0 5px 5px; }
+.pipe-step.s-cron   .ps-tag { background: var(--gold); color: #1A1714; }
+.pipe-step.s-edge   .ps-tag { background: #A5B4FC; color: #312E81; }
+.pipe-step.s-play   .ps-tag { background: #6EE7B7; color: #064E3B; }
+.pipe-step.s-db     .ps-tag { background: #F9A8D4; color: #831843; }
+
+.pipe-connector {
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(247,244,239,0.3); font-size: 1.2rem; flex-shrink: 0;
+}
+
+.timing-bar {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: clamp(8px,1vw,12px) clamp(10px,1.5vw,16px);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.timing-item { text-align: center; }
+.timing-item .ti-val { font-family: var(--mono); font-size: var(--h3-size); color: var(--gold); font-weight: 500; }
+.timing-item .ti-label { font-size: var(--small-size); color: rgba(247,244,239,0.4); margin-top: 2px; }
+
+/* ============================================
+   SLIDE 7 — RBAC ROLES
+   ============================================ */
+#s7 { background: var(--bg); }
+.rbac-wrap {
+  max-width: 860px; margin: 0 auto; width: 100%;
+  display: flex; flex-direction: column; gap: clamp(0.6rem, 1.5vw, 1rem);
+}
+.rbac-header-row {
+  display: grid;
+  grid-template-columns: 140px repeat(4, 1fr);
+  gap: 8px; align-items: center;
+}
+.role-col-header {
+  text-align: center; padding: clamp(6px,1vw,10px);
+  border-radius: 8px; font-weight: 700; font-size: var(--small-size);
+}
+.role-col-header.founder  { background: var(--ink); color: var(--gold); }
+.role-col-header.teacher  { background: var(--accent); color: white; }
+.role-col-header.operator { background: var(--green); color: white; }
+.role-col-header.parent   { background: var(--amber); color: white; }
+.role-col-header .rch-sub { font-weight: 400; opacity: 0.7; font-size: 10px; display: block; margin-top: 2px; }
+
+.rbac-row {
+  display: grid;
+  grid-template-columns: 140px repeat(4, 1fr);
+  gap: 8px; align-items: center;
+}
+.rbac-feature {
+  font-size: var(--small-size); font-weight: 500; color: var(--ink);
+  padding: clamp(6px,0.8vw,10px) 0;
+  border-bottom: 1px solid var(--border);
+}
+.rbac-cell {
+  text-align: center; font-size: 1rem; padding: clamp(5px,0.7vw,8px) 0;
+  border-bottom: 1px solid var(--border);
+}
+.rbac-cell .check { color: var(--green); }
+.rbac-cell .cross { color: rgba(26,23,20,0.2); }
+.rbac-cell .partial { color: var(--amber); font-size: 0.75rem; font-weight: 600; font-family: var(--mono); }
+
+/* ============================================
+   SLIDE 8 — CI/CD PIPELINE
+   ============================================ */
+#s8 { background: var(--bg); }
+.cicd-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1rem, 2.5vw, 2.5rem);
+  max-width: 880px; margin: 0 auto; width: 100%;
+}
+.cicd-col { display: flex; flex-direction: column; gap: clamp(6px,1vw,10px); }
+.cicd-title { font-family: var(--serif); font-size: var(--h3-size); font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.cicd-step {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: clamp(8px,1.1vw,12px) clamp(10px,1.4vw,14px);
+  display: flex; align-items: flex-start; gap: 10px;
+  position: relative; overflow: hidden;
+}
+.cicd-step::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+}
+.cicd-step.green::before { background: var(--green); }
+.cicd-step.gold::before  { background: var(--gold); }
+.cicd-step .cs-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: white;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.cicd-step.green .cs-num { background: var(--green); }
+.cicd-step.gold  .cs-num { background: var(--gold); color: var(--ink); }
+.cicd-step .cs-content { flex: 1; }
+.cicd-step .cs-name { font-weight: 600; font-size: var(--body-size); color: var(--ink); }
+.cicd-step .cs-sub  { font-size: var(--small-size); color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+
+.env-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.env-badge {
+  padding: 3px 8px; border-radius: 4px;
+  font-size: 9px; font-family: var(--mono);
+  background: rgba(67,56,202,0.08); color: var(--accent); font-weight: 600;
+}
+
+/* ============================================
+   SLIDE 9 — APPS LAYER
+   ============================================ */
+#s9 { background: var(--ink); }
+.apps-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(10px, 1.5vw, 16px);
+  max-width: 820px; margin: 0 auto; width: 100%;
+}
+.app-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: clamp(12px,1.8vw,20px) clamp(14px,2vw,22px);
+  border-top: 3px solid;
+  transition: all 0.3s ease;
+}
+.app-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+.app-card.c1 { border-top-color: var(--gold); }
+.app-card.c2 { border-top-color: #A5B4FC; }
+.app-card.c3 { border-top-color: #6EE7B7; }
+.app-card.c4 { border-top-color: #F9A8D4; }
+.app-card .ac-url { font-family: var(--mono); font-size: var(--small-size); margin-bottom: 6px; }
+.app-card.c1 .ac-url { color: var(--gold); }
+.app-card.c2 .ac-url { color: #A5B4FC; }
+.app-card.c3 .ac-url { color: #6EE7B7; }
+.app-card.c4 .ac-url { color: #F9A8D4; }
+.app-card .ac-name { font-family: var(--serif); font-size: var(--h3-size); font-weight: 700; color: rgba(247,244,239,0.9); }
+.app-card .ac-desc { font-size: var(--small-size); color: rgba(247,244,239,0.45); margin-top: 4px; }
+.app-card .ac-pages { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.ac-page { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-family: var(--mono); background: rgba(255,255,255,0.08); color: rgba(247,244,239,0.6); }
+.app-card .ac-who { margin-top: 8px; font-size: var(--small-size); color: rgba(247,244,239,0.4); display: flex; align-items: center; gap: 5px; }
+
+/* ============================================
+   SLIDE 10 — MILESTONES TIMELINE
+   ============================================ */
+#s10 { background: var(--bg); }
+.timeline-wrap {
+  max-width: 860px; margin: 0 auto; width: 100%;
+  display: flex; flex-direction: column; gap: 0;
+  position: relative;
+}
+.timeline-wrap::before {
+  content: ''; position: absolute;
+  left: 28px; top: 20px; bottom: 20px; width: 2px;
+  background: linear-gradient(180deg, var(--accent), var(--accent2), var(--border));
+}
+.milestone {
+  display: flex; align-items: flex-start; gap: clamp(10px,1.5vw,18px);
+  padding: clamp(8px,1.2vw,12px) 0;
+  position: relative;
+}
+.milestone-dot {
+  width: 58px; height: 58px; border-radius: 50%;
+  background: var(--surface); border: 2px solid;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex-shrink: 0; z-index: 2;
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+}
+.milestone-dot .md-num { font-size: 13px; font-weight: 700; }
+.m-done   { border-color: var(--green); }  .m-done   .md-num { color: var(--green); }
+.m-active { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(67,56,202,0.12); } .m-active .md-num { color: var(--accent); }
+.m-next   { border-color: var(--amber); }  .m-next   .md-num { color: var(--amber); }
+.m-future { border-color: var(--border); }  .m-future .md-num { color: var(--muted); }
+.milestone-body { flex: 1; padding-top: 12px; }
+.milestone-body .mb-name { font-weight: 700; font-size: var(--body-size); color: var(--ink); }
+.milestone-body .mb-desc { font-size: var(--small-size); color: var(--muted); margin-top: 2px; }
+.milestone-body .mb-tasks { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.mb-task { padding: 2px 7px; border-radius: 3px; font-size: 9px; font-family: var(--mono); }
+.m-done   + .milestone-body .mb-task,
+.m-done ~ .milestone-body .mb-task  { background: #D1FAE5; color: var(--green); }
+.m-active + .milestone-body .mb-task { background: var(--accent2); color: var(--accent); }
+.m-next   + .milestone-body .mb-task { background: #FEF3C7; color: var(--amber); }
+.m-future + .milestone-body .mb-task { background: rgba(26,23,20,0.05); color: var(--muted); }
+
+/* ============================================
+   SLIDE 11 — TECH STACK
+   ============================================ */
+#s11 { background: var(--bg); }
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 1.2vw, 14px);
+  max-width: 820px; margin: 0 auto; width: 100%;
+}
+.stack-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: clamp(10px,1.4vw,16px) clamp(12px,1.6vw,18px);
+}
+.stack-card .sk-layer { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-family: var(--mono); }
+.stack-card .sk-items { display: flex; flex-direction: column; gap: 4px; }
+.sk-item { display: flex; align-items: center; gap: 8px; }
+.sk-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sk-item .si-name { font-weight: 600; font-size: var(--small-size); color: var(--ink); }
+.sk-item .si-role { font-size: var(--small-size); color: var(--muted); }
+
+/* ============================================
+   SLIDE 12 — CLOSING
+   ============================================ */
+#s12 { background: var(--ink); }
+#s12 .bg-orbs { position: absolute; inset: 0; overflow: hidden; }
+#s12 .orb {
+  position: absolute; border-radius: 50%; filter: blur(80px);
+  animation: orbFloat 8s ease-in-out infinite alternate;
+}
+#s12 .orb1 { width: 400px; height: 400px; background: rgba(67,56,202,0.2); top: -100px; right: -100px; }
+#s12 .orb2 { width: 300px; height: 300px; background: rgba(212,168,83,0.15); bottom: -50px; left: -50px; animation-delay: 2s; }
+#s12 .orb3 { width: 200px; height: 200px; background: rgba(5,150,105,0.1); top: 40%; left: 40%; animation-delay: 4s; }
+@keyframes orbFloat { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.1) translate(20px, -20px); } }
+#s12 .close-content { position: relative; z-index: 2; text-align: center; max-width: 620px; margin: 0 auto; }
+#s12 .close-content blockquote {
+  font-family: var(--serif);
+  font-size: clamp(1rem, 3vw, 2rem);
+  font-style: italic;
+  color: rgba(247,244,239,0.9);
+  font-weight: 300;
+  line-height: 1.5;
+  margin: 1.5rem 0;
+}
+#s12 .close-content cite { font-size: var(--small-size); color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; }
+#s12 .metrics {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 2rem;
+}
+#s12 .metric { text-align: center; }
+#s12 .metric .mv { font-family: var(--serif); font-size: var(--h2-size); font-weight: 700; color: var(--gold); }
+#s12 .metric .ml { font-size: var(--small-size); color: rgba(247,244,239,0.4); margin-top: 2px; }
+
+/* ============================================
+   COMMON HEADER COMPONENT
+   ============================================ */
+.slide-header {
+  margin-bottom: clamp(0.8rem, 2vw, 1.8rem);
+}
+.slide-header .sh-label { font-family: var(--mono); font-size: var(--small-size); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.slide-header .sh-label::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--muted); }
+.slide-header h2 { font-family: var(--serif); font-size: var(--h2-size); font-weight: 700; color: var(--ink); }
+.slide-header.light h2 { color: #F7F4EF; }
+.slide-header.light .sh-label { color: rgba(247,244,239,0.45); }
+.slide-header.light .sh-label::before { background: rgba(247,244,239,0.3); }
+</style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div id="progress"><div id="progress-bar"></div></div>
+<div id="slide-counter">01 / 12</div>
+<div id="kbd-hint">↑↓ or scroll to navigate</div>
+<nav id="nav-dots" aria-label="Slide navigation"></nav>
+
+<main>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 1 — COVER
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s1" data-slide="1">
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="slide-content" style="align-items:center; justify-content:center;">
+    <div class="content">
+      <div class="reveal d1" style="text-align:center; margin-bottom:1rem;">
+        <span class="tag tag-accent" style="background:rgba(67,56,202,0.3); color:#A5B4FC;">System Design</span>
+      </div>
+      <h1 class="reveal d2">Aurora <em>OS</em></h1>
+      <p class="sub reveal d3">How every component thinks, breathes, and talks to each other</p>
+      <div class="meta reveal d4">
+        <span class="pill">5 Apps</span>
+        <span class="pill">4 Shared Packages</span>
+        <span class="pill">1 Supabase</span>
+        <span class="pill">Turborepo Monorepo</span>
+        <span class="pill">Live Simption Sync</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 2 — ECOSYSTEM OVERVIEW
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s2" data-slide="2">
+  <div class="slide-content">
+    <div class="slide-header reveal d1">
+      <div class="sh-label">01 — Overview</div>
+      <h2>The Ecosystem</h2>
+    </div>
+    <div class="eco-grid reveal d2">
+      <div class="eco-col">
+        <div class="eco-app reveal-left d2">
+          <div class="app-name">aurora-thread-school</div>
+          <div class="app-desc">Public school website (Lovable-hosted)</div>
+          <span class="app-tag"><span class="tag tag-amber">Static</span></span>
+        </div>
+        <div class="eco-app reveal-left d3">
+          <div class="app-name">aurora-curriculum</div>
+          <div class="app-desc">Lesson planner + student progress tracker</div>
+          <span class="app-tag"><span class="tag tag-accent">Live</span></span>
+        </div>
+        <div class="eco-app reveal-left d4">
+          <div class="app-name">aurora-expenses</div>
+          <div class="app-desc">Financial health + fee defaulter dashboard</div>
+          <span class="app-tag"><span class="tag tag-accent">Live</span></span>
+        </div>
+        <div class="eco-app reveal-left d5">
+          <div class="app-name">aurora-dashboard</div>
+          <div class="app-desc">Unified founder command center</div>
+          <span class="app-tag"><span class="tag tag-green">Building</span></span>
+        </div>
+      </div>
+
+      <div class="eco-center reveal d2">
+        <div class="eco-arrow">→</div>
+        <div class="eco-center-box">
+          <div class="label">Single Backend</div>
+          <div class="name">Supabase</div>
+          <div style="font-size:var(--small-size); opacity:0.7; margin-top:6px; font-family:var(--mono);">PostgreSQL · Auth · RLS<br>Edge Functions · Realtime</div>
+        </div>
+        <div class="eco-arrow">←</div>
+        <div style="margin-top:8px; text-align:center;">
+          <div class="tag tag-accent" style="font-size:10px;">@aurora/* packages</div>
+        </div>
+      </div>
+
+      <div class="eco-col eco-right">
+        <div class="eco-app reveal d2">
+          <div class="app-name">Simption ERP</div>
+          <div class="app-desc">PHP SaaS — student, fee, attendance data</div>
+          <span class="app-tag"><span class="tag tag-red">External</span></span>
+        </div>
+        <div class="eco-app reveal d3">
+          <div class="app-name">aurora-scraper</div>
+          <div class="app-desc">Playwright headless — syncs Simption every 6h</div>
+          <span class="app-tag"><span class="tag tag-green">Live</span></span>
+        </div>
+        <div class="eco-app reveal d4">
+          <div class="app-name">GitHub Actions</div>
+          <div class="app-desc">CI builds + cron sync trigger</div>
+          <span class="app-tag"><span class="tag tag-accent">CI/CD</span></span>
+        </div>
+        <div class="eco-app reveal d5">
+          <div class="app-name">Vercel</div>
+          <div class="app-desc">Zero-ops hosting, preview URLs per PR</div>
+          <span class="app-tag"><span class="tag tag-green">Hosting</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 3 — MONOREPO STRUCTURE
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s3" data-slide="3">
+  <div class="slide-content">
+    <div class="slide-header light reveal d1">
+      <div class="sh-label">02 — Architecture</div>
+      <h2>Monorepo Structure</h2>
+    </div>
+    <div class="mono-layout reveal d2">
+      <div>
+        <div class="mono-tree">
+          <span class="dir">aurora-os/</span>
+          <span class="indent" style="padding-left:16px"><span class="dir">apps/</span></span>
+          <span class="indent" style="padding-left:32px"><span class="pkg">dashboard/</span>   <span class="file">← @aurora/dashboard</span></span>
+          <span class="indent" style="padding-left:32px"><span class="pkg">curriculum/</span>  <span class="file">← @aurora/curriculum</span></span>
+          <span class="indent" style="padding-left:32px"><span class="pkg">expenses/</span>    <span class="file">← @aurora/expenses</span></span>
+          <span class="indent" style="padding-left:32px"><span class="pkg">site/</span>        <span class="file">← school website</span></span>
+          <span class="indent" style="padding-left:16px"><span class="dir">packages/</span></span>
+          <span class="indent" style="padding-left:32px"><span class="pkg">ui/</span>          <span class="file">← @aurora/ui</span></span>
+          <span class="indent" style="padding-left:32px"><span class="pkg">types/</span>       <span class="file">← @aurora/types</span></span>
+          <span class="indent" style="padding-left:32px"><span class="pkg">supabase/</span>    <span class="file">← @aurora/supabase</span></span>
+          <span class="indent" style="padding-left:32px"><span class="pkg">config/</span>      <span class="file">← @aurora/config</span></span>
+          <span class="indent" style="padding-left:16px"><span class="dir">services/</span></span>
+          <span class="indent" style="padding-left:32px"><span class="svc">scraper/</span>     <span class="file">← Bun + Playwright</span></span>
+          <span class="indent" style="padding-left:16px"><span class="dir">supabase/</span></span>
+          <span class="indent" style="padding-left:32px"><span class="file">migrations/</span></span>
+          <span class="indent" style="padding-left:32px"><span class="svc">functions/</span>   <span class="file">← Edge Functions</span></span>
+          <span class="indent" style="padding-left:16px"><span class="cfg">turbo.json</span>    <span class="file">← build graph</span></span>
+          <span class="indent" style="padding-left:16px"><span class="cfg">vercel.json</span>   <span class="file">← multi-app deploy</span></span>
+        </div>
+      </div>
+      <div class="pkg-cards">
+        <div style="color:rgba(247,244,239,0.5); font-size:var(--small-size); font-family:var(--mono); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.08em;">Shared Packages</div>
+        <div class="pkg-card c-ui reveal d3">
+          <div class="pk-name">@aurora/ui</div>
+          <div class="pk-desc">Card, KPICard, Sidebar, StatusBadge, tokens</div>
+          <div class="pk-exports"><span class="pk-ex">Card</span><span class="pk-ex">KPICard</span><span class="pk-ex">SectionTitle</span><span class="pk-ex">Sidebar</span><span class="pk-ex">DataTable</span><span class="pk-ex">colors</span></div>
+        </div>
+        <div class="pkg-card c-types reveal d4">
+          <div class="pk-name">@aurora/types</div>
+          <div class="pk-desc">TypeScript interfaces shared across all apps</div>
+          <div class="pk-exports"><span class="pk-ex">Student</span><span class="pk-ex">FeeRecord</span><span class="pk-ex">Role</span><span class="pk-ex">KPI</span><span class="pk-ex">SyncLog</span></div>
+        </div>
+        <div class="pkg-card c-supa reveal d5">
+          <div class="pk-name">@aurora/supabase</div>
+          <div class="pk-desc">Client + React Query hooks for all tables</div>
+          <div class="pk-exports"><span class="pk-ex">useStudents</span><span class="pk-ex">useFees</span><span class="pk-ex">useSyncStatus</span><span class="pk-ex">useCurrentUser</span></div>
+        </div>
+        <div class="pkg-card c-cfg reveal d6">
+          <div class="pk-name">@aurora/config</div>
+          <div class="pk-desc">Shared Vite, Tailwind, ESLint base configs</div>
+          <div class="pk-exports"><span class="pk-ex">vite.base.ts</span><span class="pk-ex">tailwind.base.js</span><span class="pk-ex">.eslintrc</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 4 — DATA FLOW
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s4" data-slide="4">
+  <div class="slide-content">
+    <div class="slide-header reveal d1">
+      <div class="sh-label">03 — Data Flow</div>
+      <h2>How Data Moves</h2>
+    </div>
+    <div class="flow-wrap">
+      <!-- Row 1: Simption → Scraper -->
+      <div class="flow-row reveal d2">
+        <div class="flow-node">
+          <span class="fn-icon">🏫</span>
+          <div class="fn-name">Simption ERP</div>
+          <div class="fn-sub">PHP SaaS · live student data</div>
+        </div>
+        <div class="flow-arrow">
+          <div class="flow-line"><div class="flow-dot"></div></div>
+          <div class="flow-label">Playwright<br>scrape session</div>
+        </div>
+        <div class="flow-node highlight">
+          <span class="fn-icon">🤖</span>
+          <div class="fn-name">aurora-scraper</div>
+          <div class="fn-sub">Bun · Playwright · headless Chromium</div>
+        </div>
+        <div class="flow-arrow">
+          <div class="flow-line"><div class="flow-dot d-delay"></div></div>
+          <div class="flow-label">service_role key<br>upsert</div>
+        </div>
+        <div class="flow-node highlight-green">
+          <span class="fn-icon">🗄️</span>
+          <div class="fn-name">Supabase PostgreSQL</div>
+          <div class="fn-sub">students · fees · attendance · sync_logs</div>
+        </div>
+      </div>
+      <!-- Row 2: Supabase → Apps -->
+      <div class="reveal d3" style="display:flex; justify-content:center;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+          <div style="width:2px; height:28px; background:linear-gradient(180deg, var(--accent), var(--accent2)); position:relative; overflow:visible;">
+            <div style="position:absolute; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:var(--accent); animation:flowMove 2s ease-in-out infinite; top:0; left:calc(50% - 4px);"></div>
+          </div>
+          <div style="font-size:10px; color:var(--muted); font-family:var(--mono);">React Query + Supabase Realtime</div>
+          <div style="width:2px; height:20px; background:linear-gradient(180deg, var(--accent2), var(--border));"></div>
+        </div>
+      </div>
+      <!-- Row 3: App bubbles -->
+      <div class="flow-apps-row reveal d4">
+        <div class="app-bubble">🧭 Founder Pulse<br><span style="opacity:0.7;font-weight:400;font-size:10px;">10 live KPIs</span></div>
+        <div class="app-bubble green">💰 Financial Health<br><span style="opacity:0.7;font-weight:400;font-size:10px;">fees · surplus · defaulters</span></div>
+        <div class="app-bubble gold">📊 Enrollment<br><span style="opacity:0.7;font-weight:400;font-size:10px;">class strength · funnel</span></div>
+        <div class="app-bubble ink">📋 Compliance<br><span style="opacity:0.7;font-weight:400;font-size:10px;">deadlines · certificates</span></div>
+      </div>
+      <!-- Row 4: Sync indicator -->
+      <div class="reveal d5" style="display:flex; justify-content:center; gap:2rem; flex-wrap:wrap; margin-top:4px;">
+        <span style="font-size:var(--small-size); color:var(--muted); font-family:var(--mono);">🕐 Syncs every 6 hours automatically</span>
+        <span style="font-size:var(--small-size); color:var(--muted); font-family:var(--mono);">⚡ Manual sync from GitHub Actions UI</span>
+        <span style="font-size:var(--small-size); color:var(--muted); font-family:var(--mono);">📡 Last sync shown on every page</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 5 — SUPABASE SCHEMA
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s5" data-slide="5">
+  <div class="slide-content">
+    <div class="slide-header reveal d1">
+      <div class="sh-label">04 — Database</div>
+      <h2>Supabase Schema</h2>
+    </div>
+    <div class="schema-grid">
+      <div class="table-card reveal-scale d2">
+        <div class="tc-header accent">👤 students</div>
+        <div class="tc-fields">
+          <div class="tc-field"><span class="fname">id</span><span class="fkey">PK</span></div>
+          <div class="tc-field"><span class="fname">school_id</span><span class="fkey">FK</span></div>
+          <div class="tc-field"><span class="fname">erp_id</span><span class="ftype">text</span></div>
+          <div class="tc-field"><span class="fname">name · class</span><span class="ftype">text</span></div>
+          <div class="tc-field"><span class="fname">guardian_phone</span><span class="ftype">text</span></div>
+          <div class="tc-field"><span class="fname">is_active</span><span class="ftype">bool</span></div>
+        </div>
+      </div>
+      <div class="table-card reveal-scale d3">
+        <div class="tc-header green">💳 fee_records</div>
+        <div class="tc-fields">
+          <div class="tc-field"><span class="fname">id</span><span class="fkey">PK</span></div>
+          <div class="tc-field"><span class="fname">student_id</span><span class="fkey">FK</span></div>
+          <div class="tc-field"><span class="fname">amount_due</span><span class="ftype">numeric</span></div>
+          <div class="tc-field"><span class="fname">amount_paid</span><span class="ftype">numeric</span></div>
+          <div class="tc-field"><span class="fname">due_date</span><span class="ftype">date</span></div>
+          <div class="tc-field"><span class="fname">fee_type</span><span class="ftype">text</span></div>
+        </div>
+      </div>
+      <div class="table-card reveal-scale d4">
+        <div class="tc-header" style="background:#7C3AED;">📅 attendance_records</div>
+        <div class="tc-fields">
+          <div class="tc-field"><span class="fname">id</span><span class="fkey">PK</span></div>
+          <div class="tc-field"><span class="fname">student_id</span><span class="fkey">FK</span></div>
+          <div class="tc-field"><span class="fname">date</span><span class="ftype">date</span></div>
+          <div class="tc-field"><span class="fname">status</span><span class="ftype">present·absent·late</span></div>
+          <div class="tc-field"><span class="fname">marked_by</span><span class="fkey">FK</span></div>
+        </div>
+      </div>
+      <div class="table-card reveal-scale d5">
+        <div class="tc-header gold">📈 monthly_financials</div>
+        <div class="tc-fields">
+          <div class="tc-field"><span class="fname">month</span><span class="ftype">YYYY-MM</span></div>
+          <div class="tc-field"><span class="fname">revenue</span><span class="ftype">numeric</span></div>
+          <div class="tc-field"><span class="fname">expenses</span><span class="ftype">numeric</span></div>
+          <div class="tc-field"><span class="fname">surplus</span><span class="ftype">numeric</span></div>
+          <div class="tc-field"><span class="fname">collection_rate</span><span class="ftype">%</span></div>
+        </div>
+      </div>
+      <div class="table-card reveal-scale d6">
+        <div class="tc-header">🔄 sync_logs</div>
+        <div class="tc-fields">
+          <div class="tc-field"><span class="fname">synced_at</span><span class="ftype">timestamptz</span></div>
+          <div class="tc-field"><span class="fname">students_updated</span><span class="ftype">int</span></div>
+          <div class="tc-field"><span class="fname">fees_updated</span><span class="ftype">int</span></div>
+          <div class="tc-field"><span class="fname">duration_ms</span><span class="ftype">int</span></div>
+          <div class="tc-field"><span class="fname">errors</span><span class="ftype">jsonb[]</span></div>
+        </div>
+      </div>
+      <div class="table-card reveal-scale d7">
+        <div class="tc-header" style="background:#0F766E;">👥 teacher_profiles</div>
+        <div class="tc-fields">
+          <div class="tc-field"><span class="fname">id</span><span class="fkey">= auth.uid()</span></div>
+          <div class="tc-field"><span class="fname">school_id</span><span class="fkey">FK</span></div>
+          <div class="tc-field"><span class="fname">role</span><span class="ftype">founder|teacher|operator</span></div>
+          <div class="tc-field"><span class="fname">display_name</span><span class="ftype">text</span></div>
+          <div class="tc-field"><span class="fname">RLS</span><span class="ftype">row-level security ON</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 6 — SIMPTION SYNC PIPELINE
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s6" data-slide="6">
+  <div class="slide-content">
+    <div class="slide-header light reveal d1">
+      <div class="sh-label">05 — Sync</div>
+      <h2>Simption → Supabase Pipeline</h2>
+    </div>
+    <div class="pipeline-wrap">
+      <div class="pipeline-row">
+        <div class="pipe-step s-cron reveal d2">
+          <div class="ps-tag">every 6h</div>
+          <div class="ps-num">01</div>
+          <div class="ps-name">GitHub Actions Cron</div>
+          <div class="ps-sub">cron: '0 */6 * * *' · also manual dispatch</div>
+        </div>
+        <div class="pipe-connector reveal d2">→</div>
+        <div class="pipe-step s-edge reveal d3">
+          <div class="ps-tag">Deno runtime</div>
+          <div class="ps-num">02</div>
+          <div class="ps-name">Supabase Edge Function</div>
+          <div class="ps-sub">sync-simption · verifies SYNC_SECRET header</div>
+        </div>
+        <div class="pipe-connector reveal d3">→</div>
+        <div class="pipe-step s-play reveal d4">
+          <div class="ps-tag">Fly.io</div>
+          <div class="ps-num">03</div>
+          <div class="ps-name">Playwright Scraper</div>
+          <div class="ps-sub">Logs into Simption · scrapes 3 sessions · deduplicates by ERP ID</div>
+        </div>
+        <div class="pipe-connector reveal d4">→</div>
+        <div class="pipe-step s-db reveal d5">
+          <div class="ps-num">04</div>
+          <div class="ps-name">Supabase PostgreSQL</div>
+          <div class="ps-sub">upsert students · fee_records · attendance · writes sync_log</div>
+        </div>
+      </div>
+
+      <div class="timing-bar reveal d6">
+        <div class="timing-item">
+          <div class="ti-val">6h</div>
+          <div class="ti-label">Sync cadence</div>
+        </div>
+        <div class="timing-item">
+          <div class="ti-val">~90s</div>
+          <div class="ti-label">Typical duration</div>
+        </div>
+        <div class="timing-item">
+          <div class="ti-val">0 ops</div>
+          <div class="ti-label">Manual effort</div>
+        </div>
+        <div class="timing-item">
+          <div class="ti-val">sync_logs</div>
+          <div class="ti-label">Audit trail</div>
+        </div>
+      </div>
+
+      <div class="reveal d7" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px 14px; font-family:var(--mono); font-size:var(--small-size); color:rgba(247,244,239,0.5);">
+        <span style="color:#6EE7B7;">✓ Error handling:</span> if scraper fails, Edge Function writes error to sync_logs.errors[] · dashboard shows "Sync failed X hours ago" badge in red
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 7 — RBAC ROLES
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s7" data-slide="7">
+  <div class="slide-content">
+    <div class="slide-header reveal d1">
+      <div class="sh-label">06 — Access Control</div>
+      <h2>Who Sees What</h2>
+    </div>
+    <div class="rbac-wrap">
+      <div class="rbac-header-row reveal d2">
+        <div></div>
+        <div class="role-col-header founder">Founder<span class="rch-sub">Full access</span></div>
+        <div class="role-col-header teacher">Teacher<span class="rch-sub">Own class</span></div>
+        <div class="role-col-header operator">Operator<span class="rch-sub">Financial</span></div>
+        <div class="role-col-header parent">Parent<span class="rch-sub">Phase 2</span></div>
+      </div>
+      <div class="rbac-row reveal d3">
+        <div class="rbac-feature">Founder Pulse (KPIs)</div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+      </div>
+      <div class="rbac-row reveal d3">
+        <div class="rbac-feature">Financial Health</div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+      </div>
+      <div class="rbac-row reveal d4">
+        <div class="rbac-feature">Fee Defaulters</div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="partial">Own child</span></div>
+      </div>
+      <div class="rbac-row reveal d4">
+        <div class="rbac-feature">Student Profiles</div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="partial">Own class</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+        <div class="rbac-cell"><span class="partial">Own child</span></div>
+      </div>
+      <div class="rbac-row reveal d5">
+        <div class="rbac-feature">Attendance</div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="partial">Mark + view</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+        <div class="rbac-cell"><span class="partial">View only</span></div>
+      </div>
+      <div class="rbac-row reveal d5">
+        <div class="rbac-feature">Curriculum / Lessons</div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+      </div>
+      <div class="rbac-row reveal d6">
+        <div class="rbac-feature">Compliance Calendar</div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+        <div class="rbac-cell"><span class="check">✓</span></div>
+        <div class="rbac-cell"><span class="cross">–</span></div>
+      </div>
+      <div class="reveal d7" style="margin-top:6px; display:flex; gap:12px; flex-wrap:wrap;">
+        <span style="font-size:var(--small-size); color:var(--muted); font-family:var(--mono);">⚡ Enforced via Supabase RLS policies — not just UI hiding</span>
+        <span style="font-size:var(--small-size); color:var(--muted); font-family:var(--mono);">🔐 One login works across all Aurora apps</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 8 — CI/CD PIPELINE
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s8" data-slide="8">
+  <div class="slide-content">
+    <div class="slide-header reveal d1">
+      <div class="sh-label">07 — DevOps</div>
+      <h2>CI / CD Pipeline</h2>
+    </div>
+    <div class="cicd-layout">
+      <div class="cicd-col">
+        <div class="cicd-title reveal d2">Every Pull Request</div>
+        <div class="cicd-step reveal d2">
+          <div class="cs-num">1</div>
+          <div class="cs-content">
+            <div class="cs-name">turbo build</div>
+            <div class="cs-sub">all 3 apps × matrix build</div>
+          </div>
+        </div>
+        <div class="cicd-step reveal d3">
+          <div class="cs-num">2</div>
+          <div class="cs-content">
+            <div class="cs-name">turbo lint + typecheck</div>
+            <div class="cs-sub">ESLint + tsc --noEmit</div>
+          </div>
+        </div>
+        <div class="cicd-step green reveal d4">
+          <div class="cs-num cs-num" style="background:var(--green);">3</div>
+          <div class="cs-content">
+            <div class="cs-name">Vercel Preview Deploy</div>
+            <div class="cs-sub">unique URL per PR · auto-comment on PR</div>
+          </div>
+        </div>
+        <div class="env-badges reveal d5">
+          <span class="env-badge">VITE_SUPABASE_URL</span>
+          <span class="env-badge">VITE_SUPABASE_ANON_KEY</span>
+          <span class="env-badge">SYNC_SECRET</span>
+          <span class="env-badge">SCRAPER_SECRET</span>
+        </div>
+      </div>
+      <div class="cicd-col">
+        <div class="cicd-title reveal d2">Every Push to main</div>
+        <div class="cicd-step green reveal d2">
+          <div class="cs-num" style="background:var(--green);">1</div>
+          <div class="cs-content">
+            <div class="cs-name">Vercel Production Deploy</div>
+            <div class="cs-sub">dashboard.aurora-os.in · curriculum.aurora-os.in</div>
+          </div>
+        </div>
+        <div class="cicd-step gold reveal d3">
+          <div class="cs-num" style="background:var(--gold); color:var(--ink);">2</div>
+          <div class="cs-content">
+            <div class="cs-name">Supabase migrations run</div>
+            <div class="cs-sub">supabase db push (if schema changed)</div>
+          </div>
+        </div>
+        <div class="cicd-title reveal d4" style="margin-top:8px;">Scheduled (Cron)</div>
+        <div class="cicd-step gold reveal d5">
+          <div class="cs-num" style="background:var(--gold); color:var(--ink);">C1</div>
+          <div class="cs-content">
+            <div class="cs-name">Simption Sync</div>
+            <div class="cs-sub">every 6 hours · 0 */6 * * *</div>
+          </div>
+        </div>
+        <div class="cicd-step green reveal d6">
+          <div class="cs-num" style="background:var(--green);">C2</div>
+          <div class="cs-content">
+            <div class="cs-name">Monthly P&L Email</div>
+            <div class="cs-sub">1st of each month · 8am IST</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 9 — APPS LAYER
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s9" data-slide="9">
+  <div class="slide-content">
+    <div class="slide-header light reveal d1">
+      <div class="sh-label">08 — Applications</div>
+      <h2>The Four Apps</h2>
+    </div>
+    <div class="apps-grid">
+      <div class="app-card c1 reveal d2">
+        <div class="ac-url">apps/dashboard</div>
+        <div class="ac-name">Founder Command Center</div>
+        <div class="ac-desc">The daily 60-second health check. Everything that matters, in one place.</div>
+        <div class="ac-pages">
+          <span class="ac-page">Founder Pulse</span>
+          <span class="ac-page">Financial Health</span>
+          <span class="ac-page">Enrollment</span>
+          <span class="ac-page">Compliance</span>
+          <span class="ac-page">Students</span>
+        </div>
+        <div class="ac-who">👤 <span style="color:rgba(247,244,239,0.5);">Founder + Operator</span></div>
+      </div>
+      <div class="app-card c2 reveal d3">
+        <div class="ac-url">apps/curriculum</div>
+        <div class="ac-name">Curriculum & Classroom</div>
+        <div class="ac-desc">Lesson planning, student profiles, progress tracking, NEP 2020 stage alignment.</div>
+        <div class="ac-pages">
+          <span class="ac-page">Lesson Editor</span>
+          <span class="ac-page">Student Browser</span>
+          <span class="ac-page">Progress Tracker</span>
+          <span class="ac-page">Philosophy</span>
+          <span class="ac-page">Settings</span>
+        </div>
+        <div class="ac-who">👥 <span style="color:rgba(247,244,239,0.5);">Teachers + Founder</span></div>
+      </div>
+      <div class="app-card c3 reveal d4">
+        <div class="ac-url">apps/expenses</div>
+        <div class="ac-name">Financial Intelligence</div>
+        <div class="ac-desc">P&L charts, fee collection rate vs 92% target, defaulter aging, expense breakdown.</div>
+        <div class="ac-pages">
+          <span class="ac-page">Revenue vs Expenses</span>
+          <span class="ac-page">Collection Rate</span>
+          <span class="ac-page">Defaulters + WhatsApp</span>
+          <span class="ac-page">Salary Benchmark</span>
+        </div>
+        <div class="ac-who">💼 <span style="color:rgba(247,244,239,0.5);">Founder + Operator</span></div>
+      </div>
+      <div class="app-card c4 reveal d5">
+        <div class="ac-url">apps/parent</div>
+        <div class="ac-name">Parent Portal</div>
+        <div class="ac-desc">Phase 2. OTP login via phone. Child attendance, fee dues, report cards.</div>
+        <div class="ac-pages">
+          <span class="ac-page">Attendance Calendar</span>
+          <span class="ac-page">Fee Status</span>
+          <span class="ac-page">Report Card</span>
+          <span class="ac-page">Notifications</span>
+        </div>
+        <div class="ac-who">📱 <span style="color:rgba(247,244,239,0.5);">Parents · Phase 2</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 10 — MILESTONES
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s10" data-slide="10">
+  <div class="slide-content">
+    <div class="slide-header reveal d1">
+      <div class="sh-label">09 — Roadmap</div>
+      <h2>Milestones</h2>
+    </div>
+    <div class="timeline-wrap">
+      <div class="milestone reveal d2">
+        <div class="milestone-dot m-done"><span class="md-num">M1</span></div>
+        <div class="milestone-body">
+          <div class="mb-name">Foundation — Turborepo Monorepo</div>
+          <div class="mb-desc">All repos unified · @aurora/ui + @aurora/types built · shared configs</div>
+          <div class="mb-tasks"><span class="mb-task">Task 1–3</span></div>
+        </div>
+      </div>
+      <div class="milestone reveal d3">
+        <div class="milestone-dot m-active"><span class="md-num">M2</span></div>
+        <div class="milestone-body">
+          <div class="mb-name">Live Data — Supabase Schema + Hooks</div>
+          <div class="mb-desc">Expenses dashboard shows real DB data · SyncStatusBar on every page</div>
+          <div class="mb-tasks"><span class="mb-task">Task 4–5</span></div>
+        </div>
+      </div>
+      <div class="milestone reveal d4">
+        <div class="milestone-dot m-active"><span class="md-num">M3</span></div>
+        <div class="milestone-body">
+          <div class="mb-name">CI Early — GitHub Actions + Vercel Previews</div>
+          <div class="mb-desc">Every push verified · preview URL per PR · types always checked</div>
+          <div class="mb-tasks"><span class="mb-task">Task 13</span></div>
+        </div>
+      </div>
+      <div class="milestone reveal d5">
+        <div class="milestone-dot m-next"><span class="md-num">M4</span></div>
+        <div class="milestone-body">
+          <div class="mb-name">Live Sync — Simption → Supabase</div>
+          <div class="mb-desc">Scraper on Fly.io · Edge Function orchestrator · cron trigger</div>
+          <div class="mb-tasks"><span class="mb-task">Task 6–8</span></div>
+        </div>
+      </div>
+      <div class="milestone reveal d6">
+        <div class="milestone-dot m-future"><span class="md-num">M5–7</span></div>
+        <div class="milestone-body">
+          <div class="mb-name">Auth + Alerts + Parent Portal</div>
+          <div class="mb-desc">One login · WhatsApp reminders · monthly P&L email · parent self-serve</div>
+          <div class="mb-tasks"><span class="mb-task">Task 9–12</span><span class="mb-task">Phase 2</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 11 — TECH STACK
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s11" data-slide="11">
+  <div class="slide-content">
+    <div class="slide-header reveal d1">
+      <div class="sh-label">10 — Stack</div>
+      <h2>Tech Stack — Zero Ops, High Trust</h2>
+    </div>
+    <div class="stack-grid">
+      <div class="stack-card reveal-scale d2">
+        <div class="sk-layer">Frontend</div>
+        <div class="sk-items">
+          <div class="sk-item"><span class="sk-dot" style="background:#61DAFB;"></span><span class="si-name">React 19</span><span class="si-role">UI framework</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#646CFF;"></span><span class="si-name">Vite</span><span class="si-role">Build tool</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#3178C6;"></span><span class="si-name">TypeScript</span><span class="si-role">Type safety</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#06B6D4;"></span><span class="si-name">Tailwind CSS</span><span class="si-role">Styling</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:var(--accent);"></span><span class="si-name">Recharts</span><span class="si-role">Charts</span></div>
+        </div>
+      </div>
+      <div class="stack-card reveal-scale d3">
+        <div class="sk-layer">Backend & Data</div>
+        <div class="sk-items">
+          <div class="sk-item"><span class="sk-dot" style="background:#3ECF8E;"></span><span class="si-name">Supabase</span><span class="si-role">PostgreSQL + Auth</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#3ECF8E;"></span><span class="si-name">Edge Functions</span><span class="si-role">Deno runtime</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#3ECF8E;"></span><span class="si-name">Supabase Realtime</span><span class="si-role">Live updates</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#FF4154;"></span><span class="si-name">React Query</span><span class="si-role">Server state</span></div>
+        </div>
+      </div>
+      <div class="stack-card reveal-scale d4">
+        <div class="sk-layer">Scraping</div>
+        <div class="sk-items">
+          <div class="sk-item"><span class="sk-dot" style="background:#FBF0DF;"></span><span class="si-name">Bun</span><span class="si-role">Runtime + package manager</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#2EAD33;"></span><span class="si-name">Playwright</span><span class="si-role">Headless Chromium</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#6366F1;"></span><span class="si-name">Fly.io</span><span class="si-role">Scraper hosting</span></div>
+        </div>
+      </div>
+      <div class="stack-card reveal-scale d5">
+        <div class="sk-layer">Build & Monorepo</div>
+        <div class="sk-items">
+          <div class="sk-item"><span class="sk-dot" style="background:#EF4444;"></span><span class="si-name">Turborepo</span><span class="si-role">Monorepo + caching</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:var(--ink);"></span><span class="si-name">Bun Workspaces</span><span class="si-role">Package manager</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#F97316;"></span><span class="si-name">ESLint + TSC</span><span class="si-role">Lint + types</span></div>
+        </div>
+      </div>
+      <div class="stack-card reveal-scale d6">
+        <div class="sk-layer">CI / CD / Hosting</div>
+        <div class="sk-items">
+          <div class="sk-item"><span class="sk-dot" style="background:#2088FF;"></span><span class="si-name">GitHub Actions</span><span class="si-role">CI + cron</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:var(--ink);"></span><span class="si-name">Vercel</span><span class="si-role">Zero-ops hosting</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#059669;"></span><span class="si-name">Preview URLs</span><span class="si-role">Per PR reviews</span></div>
+        </div>
+      </div>
+      <div class="stack-card reveal-scale d7">
+        <div class="sk-layer">Design System</div>
+        <div class="sk-items">
+          <div class="sk-item"><span class="sk-dot" style="background:var(--gold);"></span><span class="si-name">Fraunces</span><span class="si-role">Serif display font</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:var(--accent);"></span><span class="si-name">DM Sans</span><span class="si-role">Body text</span></div>
+          <div class="sk-item"><span class="sk-dot" style="background:#F7F4EF;border:1px solid #ccc;"></span><span class="si-name">Parchment palette</span><span class="si-role">#F7F4EF · #4338CA · #1A1714</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 12 — CLOSING
+     ═══════════════════════════════════════ -->
+<section class="slide" id="s12" data-slide="12">
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="slide-content" style="align-items:center; justify-content:center;">
+    <div class="close-content">
+      <div class="reveal d1">
+        <span class="tag" style="background:rgba(212,168,83,0.2); color:var(--gold); margin-bottom:1rem; display:inline-flex;">Aurora Thread School · Varanasi</span>
+      </div>
+      <blockquote class="reveal d2">
+        "Tech is the tool.<br>Nature education is the calling."
+      </blockquote>
+      <cite class="reveal d3">— School Founder</cite>
+      <div class="metrics reveal d4">
+        <div class="metric"><div class="mv">5</div><div class="ml">Apps unified</div></div>
+        <div class="metric"><div class="mv">4</div><div class="ml">Shared packages</div></div>
+        <div class="metric"><div class="mv">1</div><div class="ml">Supabase instance</div></div>
+        <div class="metric"><div class="mv">0</div><div class="ml">Ops hours/week</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ============================================
+   PRESENTATION CONTROLLER
+   ============================================ */
+class AuroraPresentation {
+  constructor() {
+    this.slides = Array.from(document.querySelectorAll('.slide'));
+    this.total  = this.slides.length;
+    this.current = 0;
+    this.isScrolling = false;
+
+    this.bar     = document.getElementById('progress-bar');
+    this.counter = document.getElementById('slide-counter');
+    this.dotsEl  = document.getElementById('nav-dots');
+
+    this.buildDots();
+    this.bindEvents();
+    this.setupReveal();
+    this.updateUI(0);
+  }
+
+  buildDots() {
+    this.slides.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      d.setAttribute('aria-label', `Go to slide ${i + 1}`);
+      d.addEventListener('click', () => this.goTo(i));
+      this.dotsEl.appendChild(d);
+    });
+    this.dots = Array.from(this.dotsEl.querySelectorAll('.dot'));
+  }
+
+  bindEvents() {
+    // Keyboard
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); this.next(); }
+      if (e.key === 'ArrowUp'   || e.key === 'PageUp')                    { e.preventDefault(); this.prev(); }
+      if (e.key === 'Home') this.goTo(0);
+      if (e.key === 'End')  this.goTo(this.total - 1);
+    });
+
+    // Wheel
+    let wheelLock = false;
+    document.addEventListener('wheel', e => {
+      if (wheelLock) return;
+      wheelLock = true;
+      e.deltaY > 0 ? this.next() : this.prev();
+      setTimeout(() => wheelLock = false, 800);
+    }, { passive: true });
+
+    // Touch
+    let startY = 0;
+    document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+    document.addEventListener('touchend', e => {
+      const dy = startY - e.changedTouches[0].clientY;
+      if (Math.abs(dy) > 50) { dy > 0 ? this.next() : this.prev(); }
+    }, { passive: true });
+
+    // Track current slide via scroll
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+          const idx = this.slides.indexOf(entry.target);
+          if (idx !== -1) this.updateUI(idx);
+        }
+      });
+    }, { threshold: 0.5 });
+    this.slides.forEach(s => observer.observe(s));
+  }
+
+  setupReveal() {
+    const revealObs = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-scale')
+      .forEach(el => revealObs.observe(el));
+  }
+
+  next() { if (this.current < this.total - 1) this.goTo(this.current + 1); }
+  prev() { if (this.current > 0)              this.goTo(this.current - 1); }
+
+  goTo(idx) {
+    this.current = idx;
+    this.slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.updateUI(idx);
+  }
+
+  updateUI(idx) {
+    this.current = idx;
+    const pct = ((idx) / (this.total - 1)) * 100;
+    this.bar.style.width = pct + '%';
+    this.counter.textContent =
+      String(idx + 1).padStart(2, '0') + ' / ' + String(this.total).padStart(2, '0');
+    this.dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+}
+
+// Boot
+document.addEventListener('DOMContentLoaded', () => {
+  const pres = new AuroraPresentation();
+  // Trigger reveals on first slide immediately
+  document.querySelectorAll('#s1 .reveal, #s1 .reveal-left, #s1 .reveal-scale')
+    .forEach(el => el.classList.add('visible'));
+});
+</script>
+</body>
+</html>
