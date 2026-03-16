@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora Thread School — Strategic Growth Vision 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* =============================================
+   VIEWPORT FITTING: MANDATORY BASE
+   ============================================= */
+html, body { height: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+:root {
+  --title-size: clamp(1.8rem, 5.5vw, 4.2rem);
+  --h2-size: clamp(1.3rem, 3.5vw, 2.6rem);
+  --h3-size: clamp(1rem, 2.2vw, 1.6rem);
+  --body-size: clamp(0.78rem, 1.4vw, 1.05rem);
+  --small-size: clamp(0.65rem, 0.9vw, 0.82rem);
+  --slide-pad: clamp(2rem, 5vw, 5rem);
+  --content-gap: clamp(0.8rem, 2vw, 2rem);
+
+  /* Aurora Brand */
+  --parchment: #F7F4EF;
+  --ink: #1A1714;
+  --ink-muted: #6B5E52;
+  --ink-faint: #8B8175;
+  --accent: #4338CA;
+  --accent-light: rgba(67,56,202,0.10);
+  --accent-border: rgba(67,56,202,0.20);
+  --gold: #D4A853;
+  --gold-warm: #E8944A;
+  --green: #059669;
+  --amber: #D97706;
+  --red: #DC2626;
+  --white: #FFFFFF;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--ink);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =============================================
+   SLIDE NAVIGATION
+   ============================================= */
+.slide-nav {
+  position: fixed;
+  right: clamp(12px, 2.5vw, 28px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+}
+
+.nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  padding: 0;
+}
+
+.nav-dot.active { background: var(--gold); transform: scale(1.4); }
+
+.slide-counter {
+  position: fixed;
+  bottom: clamp(16px, 3vh, 28px);
+  left: var(--slide-pad);
+  font-size: var(--small-size);
+  color: rgba(255,255,255,0.35);
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.08em;
+  z-index: 100;
+  font-weight: 500;
+}
+
+.key-hint {
+  position: fixed;
+  bottom: clamp(16px, 3vh, 28px);
+  right: var(--slide-pad);
+  font-size: var(--small-size);
+  color: rgba(255,255,255,0.2);
+  font-family: 'DM Sans', sans-serif;
+  z-index: 100;
+}
+
+/* =============================================
+   REVEAL ANIMATIONS
+   ============================================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.stagger-1 { transition-delay: 0.1s; }
+.reveal.stagger-2 { transition-delay: 0.25s; }
+.reveal.stagger-3 { transition-delay: 0.4s; }
+.reveal.stagger-4 { transition-delay: 0.55s; }
+.reveal.stagger-5 { transition-delay: 0.7s; }
+.reveal.stagger-6 { transition-delay: 0.85s; }
+.slide.active .reveal { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* =============================================
+   SHARED SLIDE LAYOUT HELPERS
+   ============================================= */
+.slide-inner {
+  padding: var(--slide-pad);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.eyebrow {
+  font-size: var(--small-size);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: clamp(0.5rem, 1.5vh, 1.2rem);
+}
+
+.rule { height: 1px; background: currentColor; opacity: 0.15; margin: clamp(0.6rem, 1.5vh, 1.2rem) 0; }
+.accent-rule { height: 3px; width: 48px; background: var(--gold); border-radius: 2px; margin-bottom: clamp(0.8rem, 2vh, 1.6rem); }
+
+/* =============================================
+   SLIDE 1 — COVER
+   ============================================= */
+#slide-1 {
+  background: var(--ink);
+  color: var(--parchment);
+}
+
+#slide-1 .bg-geo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#slide-1 .circle-1 {
+  position: absolute;
+  width: min(60vw, 600px);
+  height: min(60vw, 600px);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(67,56,202,0.18) 0%, transparent 70%);
+  top: -20%;
+  right: -10%;
+}
+
+#slide-1 .circle-2 {
+  position: absolute;
+  width: min(40vw, 380px);
+  height: min(40vw, 380px);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,168,83,0.12) 0%, transparent 70%);
+  bottom: -10%;
+  left: 5%;
+}
+
+#slide-1 .grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.cover-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: clamp(2rem, 5vh, 4rem);
+}
+
+.cover-logo-mark {
+  width: clamp(36px, 5vw, 52px);
+  height: clamp(36px, 5vw, 52px);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-warm));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fraunces', serif;
+  font-size: clamp(18px, 2.5vw, 26px);
+  font-weight: 700;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.cover-logo-text {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(13px, 1.5vw, 18px);
+  color: rgba(247,244,239,0.6);
+  letter-spacing: 0.02em;
+}
+
+.cover-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2.2rem, 7vw, 5.5rem);
+  font-weight: 700;
+  color: var(--parchment);
+  line-height: 1.0;
+  margin: 0 0 clamp(0.8rem, 2vh, 1.6rem);
+  max-width: 700px;
+}
+
+.cover-title em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.cover-sub {
+  font-size: var(--h3-size);
+  color: rgba(247,244,239,0.55);
+  font-weight: 300;
+  max-width: 560px;
+  line-height: 1.5;
+  margin-bottom: clamp(2rem, 4vh, 3.5rem);
+}
+
+.cover-chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid rgba(247,244,239,0.15);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: var(--small-size);
+  color: rgba(247,244,239,0.5);
+  font-weight: 500;
+}
+
+/* =============================================
+   SLIDE 2 — THE QUESTION
+   ============================================= */
+#slide-2 {
+  background: var(--parchment);
+  color: var(--ink);
+}
+
+.big-quote {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.6rem, 4.5vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--ink);
+  max-width: 800px;
+}
+
+.big-quote em { font-style: italic; color: var(--accent); }
+
+/* =============================================
+   SLIDE 3 — 4 FORCES
+   ============================================= */
+#slide-3 {
+  background: var(--ink);
+  color: var(--parchment);
+}
+
+.forces-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px, 1.5vw, 16px);
+  margin-top: clamp(0.8rem, 2vh, 1.4rem);
+}
+
+.force-card {
+  background: rgba(247,244,239,0.04);
+  border: 1px solid rgba(247,244,239,0.10);
+  border-radius: 12px;
+  padding: clamp(14px, 2vw, 22px);
+}
+
+.force-number {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.force-title {
+  font-family: 'Fraunces', serif;
+  font-size: var(--h3-size);
+  font-weight: 600;
+  color: var(--parchment);
+  margin-bottom: 6px;
+}
+
+.force-desc {
+  font-size: var(--body-size);
+  color: rgba(247,244,239,0.5);
+  line-height: 1.5;
+}
+
+.force-tag {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: clamp(9px, 0.9vw, 11px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  background: rgba(212,168,83,0.12);
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+/* =============================================
+   SLIDE 4 — ECONOMIC OUTLOOK
+   ============================================= */
+#slide-4 {
+  background: var(--accent);
+  color: white;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 2vw, 20px);
+  margin: clamp(1rem, 2.5vh, 2rem) 0;
+}
+
+.stat-box {
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 12px;
+  padding: clamp(14px, 2vw, 22px);
+}
+
+.stat-num {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2rem, 5vw, 3.8rem);
+  font-weight: 900;
+  color: white;
+  line-height: 1;
+}
+
+.stat-unit {
+  font-size: clamp(1rem, 2vw, 1.8rem);
+  font-weight: 300;
+}
+
+.stat-label {
+  font-size: var(--body-size);
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.stat-note {
+  font-size: var(--small-size);
+  color: rgba(255,255,255,0.4);
+  margin-top: 3px;
+}
+
+/* =============================================
+   SLIDE 5 — THE WINDOW
+   ============================================= */
+#slide-5 {
+  background: var(--parchment);
+  color: var(--ink);
+}
+
+.window-timeline {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  margin: clamp(1rem, 2.5vh, 2rem) 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(26,23,20,0.10);
+}
+
+.window-phase {
+  flex: 1;
+  padding: clamp(14px, 2vw, 20px);
+  border-right: 1px solid rgba(26,23,20,0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.window-phase:last-child { border-right: none; }
+
+.window-phase.active {
+  background: var(--accent);
+  color: white;
+  flex: 1.4;
+}
+
+.window-year {
+  font-family: 'Fraunces', serif;
+  font-size: var(--body-size);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.window-phase.active .window-year { color: var(--gold); }
+
+.window-label {
+  font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.window-desc {
+  font-size: var(--small-size);
+  color: var(--ink-faint);
+  line-height: 1.4;
+  margin-top: auto;
+}
+
+.window-phase.active .window-desc { color: rgba(255,255,255,0.65); }
+
+.window-badge {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: clamp(9px, 0.9vw, 11px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+/* =============================================
+   SLIDE 6 — COMPETITIVE MOAT
+   ============================================= */
+#slide-6 {
+  background: #12100E;
+  color: var(--parchment);
+}
+
+.vs-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(12px, 2vw, 20px);
+  margin: clamp(1rem, 2.5vh, 1.8rem) 0;
+}
+
+.vs-col {
+  border-radius: 12px;
+  padding: clamp(16px, 2.5vw, 24px);
+}
+
+.vs-col.chain {
+  background: rgba(247,244,239,0.04);
+  border: 1px solid rgba(247,244,239,0.08);
+}
+
+.vs-col.aurora {
+  background: rgba(67,56,202,0.12);
+  border: 1px solid rgba(67,56,202,0.3);
+}
+
+.vs-col-label {
+  font-size: var(--small-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+  color: var(--ink-faint);
+}
+
+.vs-col.aurora .vs-col-label { color: rgba(165,180,252,0.8); }
+
+.vs-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: var(--body-size);
+  color: rgba(247,244,239,0.6);
+  line-height: 1.4;
+}
+
+.vs-item-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(247,244,239,0.2);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.vs-col.aurora .vs-item { color: rgba(247,244,239,0.85); }
+.vs-col.aurora .vs-item-dot { background: var(--gold); }
+
+.vs-verdict {
+  background: var(--accent);
+  border-radius: 10px;
+  padding: clamp(12px, 2vw, 18px);
+  text-align: center;
+  margin-top: clamp(0.8rem, 2vh, 1.4rem);
+}
+
+.vs-verdict-text {
+  font-family: 'Fraunces', serif;
+  font-size: var(--h3-size);
+  font-weight: 700;
+  color: white;
+  font-style: italic;
+}
+
+/* =============================================
+   SLIDE 7 — DASHBOARD ARCHITECTURE
+   ============================================= */
+#slide-7 {
+  background: var(--parchment);
+  color: var(--ink);
+}
+
+.arch-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.5vh, 12px);
+  margin: clamp(0.8rem, 2vh, 1.4rem) 0;
+}
+
+.arch-tier {
+  border-radius: 10px;
+  padding: clamp(12px, 1.8vw, 18px);
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 20px);
+}
+
+.arch-tier-1 { background: var(--ink); color: var(--parchment); }
+.arch-tier-2 { background: rgba(26,23,20,0.06); border: 1px solid rgba(26,23,20,0.10); }
+.arch-tier-3 { background: rgba(67,56,202,0.06); border: 1px solid rgba(67,56,202,0.12); }
+
+.arch-tier-num {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+  width: clamp(32px, 5vw, 50px);
+  flex-shrink: 0;
+}
+
+.arch-tier-info {}
+.arch-tier-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.arch-tier-1 .arch-tier-title { color: var(--parchment); }
+
+.arch-tier-desc {
+  font-size: var(--body-size);
+  color: var(--ink-muted);
+  line-height: 1.4;
+}
+
+.arch-tier-1 .arch-tier-desc { color: rgba(247,244,239,0.5); }
+
+.arch-tier-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.arch-tag {
+  font-size: clamp(9px, 0.8vw, 10px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.arch-tag-green { background: rgba(5,150,105,0.12); color: var(--green); }
+.arch-tag-amber { background: rgba(217,119,6,0.12); color: var(--amber); }
+.arch-tag-blue { background: rgba(67,56,202,0.12); color: var(--accent); }
+.arch-tag-gold { background: rgba(212,168,83,0.15); color: #92680A; }
+
+/* =============================================
+   SLIDE 8 — FINANCIAL INTELLIGENCE
+   ============================================= */
+#slide-8 {
+  background: var(--ink);
+  color: var(--parchment);
+}
+
+.fi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 1.2vw, 14px);
+  margin: clamp(0.8rem, 2vh, 1.4rem) 0;
+}
+
+.fi-card {
+  background: rgba(247,244,239,0.04);
+  border: 1px solid rgba(247,244,239,0.08);
+  border-radius: 10px;
+  padding: clamp(12px, 1.8vw, 18px);
+}
+
+.fi-card-icon {
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  margin-bottom: 6px;
+}
+
+.fi-card-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+  font-weight: 600;
+  color: var(--parchment);
+  margin-bottom: 4px;
+}
+
+.fi-card-items {
+  font-size: var(--small-size);
+  color: rgba(247,244,239,0.45);
+  line-height: 1.7;
+  padding: 0;
+  list-style: none;
+}
+
+.fi-card-items li::before { content: '· '; color: var(--gold); }
+
+/* =============================================
+   SLIDE 9 — FOUNDER PULSE
+   ============================================= */
+#slide-9 {
+  background: var(--parchment);
+  color: var(--ink);
+}
+
+.pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(7px, 1.2vw, 12px);
+  margin: clamp(0.8rem, 2vh, 1.4rem) 0;
+}
+
+.pulse-card {
+  background: white;
+  border: 1px solid rgba(26,23,20,0.08);
+  border-radius: 10px;
+  padding: clamp(10px, 1.5vw, 16px);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.pulse-label {
+  font-size: clamp(7px, 0.75vw, 9px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+
+.pulse-val {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.2rem, 2.5vw, 1.9rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.pulse-val.green { color: var(--green); }
+.pulse-val.amber { color: var(--amber); }
+.pulse-val.red { color: var(--red); }
+.pulse-val.ink { color: var(--ink); }
+
+.pulse-status {
+  font-size: clamp(8px, 0.8vw, 10px);
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+.pulse-status.green { color: var(--green); }
+.pulse-status.amber { color: var(--amber); }
+.pulse-status.red { color: var(--red); }
+
+/* =============================================
+   SLIDE 10 — THE RISK MAP
+   ============================================= */
+#slide-10 {
+  background: var(--ink);
+  color: var(--parchment);
+}
+
+.risk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(8px, 1.2vw, 14px);
+  margin: clamp(0.8rem, 2vh, 1.4rem) 0;
+}
+
+.risk-card {
+  border-radius: 10px;
+  padding: clamp(12px, 1.8vw, 18px);
+  border-left: 3px solid transparent;
+}
+
+.risk-card.high { border-left-color: var(--red); background: rgba(220,38,38,0.08); }
+.risk-card.medium { border-left-color: var(--amber); background: rgba(217,119,6,0.08); }
+.risk-card.managed { border-left-color: var(--green); background: rgba(5,150,105,0.08); }
+
+.risk-level {
+  font-size: clamp(9px, 0.8vw, 10px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin-bottom: 4px;
+}
+
+.risk-card.high .risk-level { color: var(--red); }
+.risk-card.medium .risk-level { color: var(--amber); }
+.risk-card.managed .risk-level { color: var(--green); }
+
+.risk-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+  font-weight: 600;
+  color: var(--parchment);
+  margin-bottom: 4px;
+}
+
+.risk-desc {
+  font-size: var(--small-size);
+  color: rgba(247,244,239,0.45);
+  line-height: 1.5;
+}
+
+/* =============================================
+   SLIDE 11 — 20-YEAR ROADMAP
+   ============================================= */
+#slide-11 {
+  background: var(--parchment);
+  color: var(--ink);
+}
+
+.roadmap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(8px, 1.2vw, 14px);
+  margin: clamp(0.8rem, 2vh, 1.4rem) 0;
+  align-items: start;
+}
+
+.roadmap-phase {
+  border-radius: 10px;
+  padding: clamp(12px, 1.8vw, 18px);
+  position: relative;
+}
+
+.roadmap-phase::after {
+  content: '→';
+  position: absolute;
+  right: calc(-1 * clamp(8px, 1.2vw, 14px) / 2 - 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--body-size);
+  color: var(--ink-faint);
+  opacity: 0.4;
+}
+.roadmap-phase:last-child::after { display: none; }
+
+.roadmap-phase.p1 { background: rgba(26,23,20,0.06); border: 1px solid rgba(26,23,20,0.10); }
+.roadmap-phase.p2 { background: rgba(67,56,202,0.06); border: 1px solid rgba(67,56,202,0.14); }
+.roadmap-phase.p3 { background: rgba(67,56,202,0.10); border: 1px solid rgba(67,56,202,0.20); }
+.roadmap-phase.p4 { background: var(--accent); border: 1px solid var(--accent); color: white; }
+
+.roadmap-years {
+  font-size: var(--small-size);
+  font-weight: 700;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.roadmap-phase.p4 .roadmap-years { color: rgba(255,255,255,0.6); }
+
+.roadmap-phase-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.roadmap-phase.p4 .roadmap-phase-title { color: white; }
+
+.roadmap-items {
+  list-style: none;
+  padding: 0;
+  font-size: var(--small-size);
+  color: var(--ink-muted);
+  line-height: 1.65;
+}
+
+.roadmap-phase.p4 .roadmap-items { color: rgba(255,255,255,0.7); }
+
+.roadmap-items li { padding-left: 12px; position: relative; margin-bottom: 2px; }
+.roadmap-items li::before { content: '–'; position: absolute; left: 0; color: var(--ink-faint); }
+.roadmap-phase.p4 .roadmap-items li::before { color: var(--gold); }
+
+/* =============================================
+   SLIDE 12 — CSR STRATEGY
+   ============================================= */
+#slide-12 {
+  background: var(--ink);
+  color: var(--parchment);
+}
+
+.csr-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(7px, 1.2vh, 11px);
+  margin: clamp(0.8rem, 2vh, 1.4rem) 0;
+}
+
+.csr-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 20px);
+  background: rgba(247,244,239,0.04);
+  border: 1px solid rgba(247,244,239,0.08);
+  border-radius: 10px;
+  padding: clamp(10px, 1.5vw, 16px) clamp(14px, 2vw, 22px);
+}
+
+.csr-org {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  font-weight: 700;
+  color: var(--parchment);
+  width: clamp(100px, 15vw, 160px);
+  flex-shrink: 0;
+}
+
+.csr-focus {
+  font-size: var(--body-size);
+  color: rgba(247,244,239,0.5);
+  flex: 1;
+}
+
+.csr-badge {
+  font-size: clamp(9px, 0.8vw, 10px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.csr-badge.active { background: rgba(5,150,105,0.15); color: var(--green); }
+.csr-badge.emerging { background: rgba(212,168,83,0.15); color: var(--gold); }
+
+/* =============================================
+   SLIDE 13 — IMPLEMENTATION PLAN
+   ============================================= */
+#slide-13 {
+  background: var(--parchment);
+  color: var(--ink);
+}
+
+.impl-phases {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(8px, 1.2vw, 14px);
+  margin: clamp(0.8rem, 2vh, 1.4rem) 0;
+}
+
+.impl-phase {
+  border-radius: 10px;
+  padding: clamp(12px, 1.8vw, 18px);
+}
+
+.impl-phase.ph1 { background: rgba(26,23,20,0.06); border: 1px solid rgba(26,23,20,0.12); }
+.impl-phase.ph2 { background: rgba(67,56,202,0.06); border: 1px solid rgba(67,56,202,0.14); }
+.impl-phase.ph3 { background: rgba(5,150,105,0.06); border: 1px solid rgba(5,150,105,0.15); }
+.impl-phase.ph4 { background: rgba(212,168,83,0.08); border: 1px solid rgba(212,168,83,0.2); }
+
+.impl-phase-num {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 6px;
+  opacity: 0.25;
+}
+
+.impl-phase-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.impl-phase-time {
+  font-size: var(--small-size);
+  font-weight: 600;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+}
+
+.impl-items {
+  list-style: none;
+  padding: 0;
+  font-size: var(--small-size);
+  color: var(--ink-muted);
+  line-height: 1.65;
+}
+
+.impl-items li { padding-left: 10px; position: relative; margin-bottom: 2px; }
+.impl-items li::before { content: '·'; position: absolute; left: 0; color: var(--ink-faint); }
+
+/* =============================================
+   SLIDE 14 — THE PHILOSOPHY
+   ============================================= */
+#slide-14 {
+  background: var(--ink);
+  color: var(--parchment);
+}
+
+#slide-14 .bg-geo { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+#slide-14 .circle-1 {
+  position: absolute;
+  width: min(80vw, 700px);
+  height: min(80vw, 700px);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,168,83,0.10) 0%, transparent 65%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.philosophy-quote {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.4rem, 3.5vw, 3rem);
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(247,244,239,0.85);
+  line-height: 1.4;
+  max-width: 700px;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.philosophy-quote em { color: var(--gold); font-style: normal; font-weight: 700; }
+
+.philosophy-attr {
+  text-align: center;
+  margin-top: clamp(1.2rem, 3vh, 2rem);
+  font-size: var(--body-size);
+  color: rgba(247,244,239,0.35);
+  font-weight: 500;
+}
+
+/* =============================================
+   SLIDE 15 — CLOSING
+   ============================================= */
+#slide-15 {
+  background: var(--accent);
+  color: white;
+}
+
+#slide-15 .bg-geo { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+#slide-15 .circle-a {
+  position: absolute;
+  width: min(60vw, 500px);
+  height: min(60vw, 500px);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%);
+  top: -20%; right: -10%;
+}
+
+.closing-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2rem, 6vw, 5rem);
+  font-weight: 900;
+  color: white;
+  line-height: 1.0;
+  max-width: 600px;
+  margin-bottom: clamp(1rem, 2.5vh, 2rem);
+}
+
+.closing-steps {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(7px, 1.2vh, 11px);
+  max-width: 500px;
+}
+
+.closing-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: var(--body-size);
+  color: rgba(255,255,255,0.8);
+}
+
+.step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+@media (max-height: 700px) {
+  :root {
+    --slide-pad: clamp(1rem, 3vw, 2.5rem);
+    --content-gap: clamp(0.5rem, 1.5vw, 1.2rem);
+  }
+}
+@media (max-height: 600px) {
+  :root {
+    --slide-pad: clamp(0.75rem, 2.5vw, 1.8rem);
+    --title-size: clamp(1.4rem, 4vw, 2.5rem);
+    --h2-size: clamp(1.1rem, 3vw, 1.8rem);
+  }
+  .slide-nav, .key-hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="slide-nav" aria-label="Slide navigation">
+  <button class="nav-dot active" onclick="goTo(0)" aria-label="Slide 1"></button>
+  <button class="nav-dot" onclick="goTo(1)" aria-label="Slide 2"></button>
+  <button class="nav-dot" onclick="goTo(2)" aria-label="Slide 3"></button>
+  <button class="nav-dot" onclick="goTo(3)" aria-label="Slide 4"></button>
+  <button class="nav-dot" onclick="goTo(4)" aria-label="Slide 5"></button>
+  <button class="nav-dot" onclick="goTo(5)" aria-label="Slide 6"></button>
+  <button class="nav-dot" onclick="goTo(6)" aria-label="Slide 7"></button>
+  <button class="nav-dot" onclick="goTo(7)" aria-label="Slide 8"></button>
+  <button class="nav-dot" onclick="goTo(8)" aria-label="Slide 9"></button>
+  <button class="nav-dot" onclick="goTo(9)" aria-label="Slide 10"></button>
+  <button class="nav-dot" onclick="goTo(10)" aria-label="Slide 11"></button>
+  <button class="nav-dot" onclick="goTo(11)" aria-label="Slide 12"></button>
+  <button class="nav-dot" onclick="goTo(12)" aria-label="Slide 13"></button>
+  <button class="nav-dot" onclick="goTo(13)" aria-label="Slide 14"></button>
+  <button class="nav-dot" onclick="goTo(14)" aria-label="Slide 15"></button>
+</nav>
+
+<div class="slide-counter" id="slide-counter">01 / 15</div>
+<div class="key-hint">↑↓ or scroll</div>
+
+<main>
+
+<!-- SLIDE 1: COVER -->
+<section class="slide" id="slide-1">
+  <div class="bg-geo">
+    <div class="circle-1"></div>
+    <div class="circle-2"></div>
+    <div class="grid-lines"></div>
+  </div>
+  <div class="slide-inner" style="position:relative; z-index:1;">
+    <div class="cover-logo reveal">
+      <div class="cover-logo-mark">A</div>
+      <div class="cover-logo-text">Aurora Thread School · Aurora OS</div>
+    </div>
+    <div class="cover-title reveal stagger-1">
+      Strategic<br><em>Growth</em><br>Vision
+    </div>
+    <div class="cover-sub reveal stagger-2">A 20-year plan for Akshararambh Public School, Varanasi — from village school to institutional anchor.</div>
+    <div class="cover-chips reveal stagger-3">
+      <span class="chip">CBSE · Nursery–10th</span>
+      <span class="chip">Varanasi, UP</span>
+      <span class="chip">March 2026</span>
+      <span class="chip">Confidential</span>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: THE QUESTION -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--accent)">The Opportunity</div>
+    <div class="accent-rule reveal stagger-1"></div>
+    <div class="big-quote reveal stagger-2">
+      What does it take to build a school<br>that <em>outlasts its founder</em> and becomes<br>the <em>soul of a community</em>?
+    </div>
+    <div class="rule reveal stagger-3"></div>
+    <div class="reveal stagger-4" style="font-size:var(--h3-size); color:var(--ink-muted); max-width:600px; line-height:1.5; margin-top:clamp(0.6rem,1.5vh,1rem)">
+      The macro environment is answering that question <strong style="color:var(--ink)">in your favor</strong>. Four forces are converging on Varanasi simultaneously.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: THE 4 FORCES -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--gold)">The Macro Catalyst</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--parchment); margin-bottom:0;" class="reveal stagger-1">4 Forces Converging on Varanasi</div>
+    <div class="forces-grid reveal stagger-2">
+      <div class="force-card">
+        <div class="force-number">01</div>
+        <div class="force-title">Ganga Expressway</div>
+        <div class="force-desc">75 Varanasi villages in the corridor. Land values +15–30% already. Aspirational families and industrial jobs incoming.</div>
+        <span class="force-tag">2028 operational</span>
+      </div>
+      <div class="force-card">
+        <div class="force-number">02</div>
+        <div class="force-title">Airport Expansion</div>
+        <div class="force-desc">₹2,870 Cr investment. Capacity 3.9 → 9.9 MPPA. Varanasi becomes a multi-sector economic hub.</div>
+        <span class="force-tag">July 2027</span>
+      </div>
+      <div class="force-card">
+        <div class="force-number">03</div>
+        <div class="force-title">Purvanchal Expressway</div>
+        <div class="force-desc">Varanasi–Lucknow now 3.5 hrs. Logistics and manufacturing jobs migrating east into the region.</div>
+        <span class="force-tag">Operational now</span>
+      </div>
+      <div class="force-card">
+        <div class="force-number">04</div>
+        <div class="force-title">Smart City Completion</div>
+        <div class="force-desc">Varanasi is 1 of only 18/100 cities at 100% completion. KICCC, Japan-backed tech, genuine data-driven governance.</div>
+        <span class="force-tag">Complete</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: ECONOMIC OUTLOOK -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:rgba(255,255,255,0.5)">Economic Projection</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:white; margin-bottom:0;" class="reveal stagger-1">The Numbers That Matter for Your School</div>
+    <div class="stat-row reveal stagger-2">
+      <div class="stat-box">
+        <div class="stat-num">3–4<span class="stat-unit">×</span></div>
+        <div class="stat-label">Projected income growth in Varanasi catchment by 2035</div>
+        <div class="stat-note">From ~₹15K → ₹40–60K per capita/year</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">12<span class="stat-unit">%</span></div>
+        <div class="stat-label">India K–12 private school market CAGR to 2033</div>
+        <div class="stat-note">₹91Bn → ₹256Bn market</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">115</div>
+        <div class="stat-label">CBSE schools in Varanasi city — none in your village segment</div>
+        <div class="stat-note">First-mover advantage: 5–7 years</div>
+      </div>
+    </div>
+    <div class="reveal stagger-3" style="font-size:var(--body-size); color:rgba(255,255,255,0.6); max-width:640px; line-height:1.6">
+      As family incomes rise 3–4×, fee capacity rises proportionally. A school that costs 8% of family income today will feel like 2% by 2035 — opening a wide fee escalation runway without losing enrollment.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: THE WINDOW -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--accent)">Strategic Timing</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--ink); margin-bottom:0;" class="reveal stagger-1">The First-Mover Window Is Open Now</div>
+    <div class="window-timeline reveal stagger-2">
+      <div class="window-phase" style="background:rgba(26,23,20,0.04)">
+        <div class="window-year">Past</div>
+        <div class="window-label" style="color:var(--ink-muted)">Government Schools</div>
+        <div class="window-desc">Dominated village segment. Low outcomes. Parents had no alternative.</div>
+      </div>
+      <div class="window-phase active">
+        <div class="window-badge">Act Now</div>
+        <div class="window-year">2026–2031</div>
+        <div class="window-label">Your Window</div>
+        <div class="window-desc">Village CBSE segment uncontested. National chains still in urban Varanasi. First-mover brand equity available.</div>
+      </div>
+      <div class="window-phase" style="background:rgba(220,38,38,0.04); border:1px solid rgba(220,38,38,0.12)">
+        <div class="window-year">2031+</div>
+        <div class="window-label" style="color:var(--red)">Chain Expansion</div>
+        <div class="window-desc">DPS, Ryan, Jaipuria expand peri-urban. Competition intensifies. Brand must be established by then.</div>
+      </div>
+    </div>
+    <div class="reveal stagger-3" style="font-size:var(--body-size); color:var(--ink-muted); max-width:640px; line-height:1.6">
+      The goal of 2026–2031 is not enrollment growth alone — it is <strong style="color:var(--ink)">institutional depth</strong>: land, outcomes, community trust, and curriculum identity that national chains cannot replicate.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: COMPETITIVE MOAT -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--gold)">Competitive Strategy</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--parchment); margin-bottom:0;" class="reveal stagger-1">Capital vs Soul</div>
+    <div class="vs-split reveal stagger-2">
+      <div class="vs-col chain">
+        <div class="vs-col-label">National Chains Compete On</div>
+        <div class="vs-item"><div class="vs-item-dot"></div>Brand recognition and marketing budgets</div>
+        <div class="vs-item"><div class="vs-item-dot"></div>Capital for infrastructure and labs</div>
+        <div class="vs-item"><div class="vs-item-dot"></div>Standardised curriculum systems</div>
+        <div class="vs-item"><div class="vs-item-dot"></div>National network of alumni</div>
+      </div>
+      <div class="vs-col aurora">
+        <div class="vs-col-label" style="color:rgba(165,180,252,0.8)">Aurora Thread School Competes On</div>
+        <div class="vs-item"><div class="vs-item-dot"></div>20+ years of community trust (impossible to replicate)</div>
+        <div class="vs-item"><div class="vs-item-dot"></div>Nature education philosophy — unique curriculum identity</div>
+        <div class="vs-item"><div class="vs-item-dot"></div>Founder relationship with every family</div>
+        <div class="vs-item"><div class="vs-item-dot"></div>Lower fee-to-quality ratio in the region</div>
+      </div>
+    </div>
+    <div class="vs-verdict reveal stagger-3">
+      <div class="vs-verdict-text">"Over 20 years, soul outlasts capital. Every time."</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: DASHBOARD ARCHITECTURE -->
+<section class="slide" id="slide-7">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--accent)">The Solution</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--ink); margin-bottom:0;" class="reveal stagger-1">School Intelligence Platform</div>
+    <div class="arch-tiers reveal stagger-2">
+      <div class="arch-tier arch-tier-1">
+        <div class="arch-tier-num">1</div>
+        <div class="arch-tier-info">
+          <div class="arch-tier-title">Founder Pulse</div>
+          <div class="arch-tier-desc">10 headline KPIs · Mobile-first · 60-second daily read · Green / Amber / Red status</div>
+        </div>
+        <div class="arch-tier-tags">
+          <span class="arch-tag arch-tag-gold">Daily</span>
+          <span class="arch-tag arch-tag-gold">P0</span>
+        </div>
+      </div>
+      <div class="arch-tier arch-tier-2">
+        <div class="arch-tier-num">2</div>
+        <div class="arch-tier-info">
+          <div class="arch-tier-title" style="color:var(--ink)">Manager Operations</div>
+          <div class="arch-tier-desc">Financial · Enrollment · Academic · Operations · Compliance Calendar</div>
+        </div>
+        <div class="arch-tier-tags">
+          <span class="arch-tag arch-tag-green">Weekly</span>
+          <span class="arch-tag arch-tag-amber">P1</span>
+        </div>
+      </div>
+      <div class="arch-tier arch-tier-3">
+        <div class="arch-tier-num">3</div>
+        <div class="arch-tier-info">
+          <div class="arch-tier-title" style="color:var(--ink)">Strategic Analytics</div>
+          <div class="arch-tier-desc">Capacity planning · CSR pipeline · NPS / brand health · Community impact metrics</div>
+        </div>
+        <div class="arch-tier-tags">
+          <span class="arch-tag arch-tag-blue">Monthly</span>
+          <span class="arch-tag arch-tag-blue">P2</span>
+        </div>
+      </div>
+    </div>
+    <div class="reveal stagger-3" style="font-size:var(--body-size); color:var(--ink-muted); max-width:640px; line-height:1.5">
+      Data source: Simption ERP → aurora-scraper → Supabase → aurora-dashboard. Founder maintenance load: &lt;1 hr/month once live.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: FINANCIAL INTELLIGENCE -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--gold)">Dashboard Layer 1</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--parchment); margin-bottom:0;" class="reveal stagger-1">Financial Intelligence</div>
+    <div class="fi-grid reveal stagger-2">
+      <div class="fi-card">
+        <div class="fi-card-icon">₹</div>
+        <div class="fi-card-title">Revenue Tracker</div>
+        <ul class="fi-card-items">
+          <li>Fee collection rate (daily)</li>
+          <li>Fee by type (tuition/dev/transport)</li>
+          <li>Annual revenue forecast</li>
+        </ul>
+      </div>
+      <div class="fi-card">
+        <div class="fi-card-icon">📊</div>
+        <div class="fi-card-title">Expense Monitor</div>
+        <ul class="fi-card-items">
+          <li>Salary as % of revenue</li>
+          <li>Cost per student (monthly)</li>
+          <li>Expense vs budget variance</li>
+        </ul>
+      </div>
+      <div class="fi-card">
+        <div class="fi-card-icon">💧</div>
+        <div class="fi-card-title">Cash Flow</div>
+        <ul class="fi-card-items">
+          <li>Cash reserve months (target 3+)</li>
+          <li>Seasonal peak/trough forecast</li>
+          <li>Salary payment date tracking</li>
+        </ul>
+      </div>
+      <div class="fi-card">
+        <div class="fi-card-icon">⚠</div>
+        <div class="fi-card-title">Defaulter Aging</div>
+        <ul class="fi-card-items">
+          <li>0–30 / 31–60 / 61–90 / 90+ days</li>
+          <li>Top defaulters by amount</li>
+          <li>Class-level defaulter rate</li>
+        </ul>
+      </div>
+      <div class="fi-card">
+        <div class="fi-card-icon">⚖</div>
+        <div class="fi-card-title">Break-Even</div>
+        <ul class="fi-card-items">
+          <li>Current vs break-even enrollment</li>
+          <li>Contribution margin per student</li>
+          <li>Operating surplus %</li>
+        </ul>
+      </div>
+      <div class="fi-card">
+        <div class="fi-card-icon">📅</div>
+        <div class="fi-card-title">P&amp;L Summary</div>
+        <ul class="fi-card-items">
+          <li>YTD revenue, expenses, surplus</li>
+          <li>vs budget targets</li>
+          <li>Monthly waterfall chart</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: FOUNDER PULSE -->
+<section class="slide" id="slide-9">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--accent)">The Daily Check</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--ink); margin-bottom:0;" class="reveal stagger-1">10 Numbers. 60 Seconds. Every Morning.</div>
+    <div class="pulse-grid reveal stagger-2">
+      <div class="pulse-card">
+        <div class="pulse-label">Students</div>
+        <div class="pulse-val ink">347</div>
+        <div class="pulse-status green">↑ +23 YoY</div>
+      </div>
+      <div class="pulse-card">
+        <div class="pulse-label">Fee Coll. MTD</div>
+        <div class="pulse-val green">94%</div>
+        <div class="pulse-status green">✓ Target 92%</div>
+      </div>
+      <div class="pulse-card" style="border-color:#FDE68A; background:#FFFBEB">
+        <div class="pulse-label">Cash Reserve</div>
+        <div class="pulse-val amber">2.4mo</div>
+        <div class="pulse-status amber">⚠ Watch</div>
+      </div>
+      <div class="pulse-card">
+        <div class="pulse-label">Teacher Att.</div>
+        <div class="pulse-val green">18/19</div>
+        <div class="pulse-status green">✓ 95%</div>
+      </div>
+      <div class="pulse-card">
+        <div class="pulse-label">Student Att.</div>
+        <div class="pulse-val green">91%</div>
+        <div class="pulse-status green">✓ On track</div>
+      </div>
+      <div class="pulse-card" style="border-color:#FECACA; background:#FEF2F2">
+        <div class="pulse-label">Dues Total</div>
+        <div class="pulse-val red">₹1.2L</div>
+        <div class="pulse-status red">↑ Increasing</div>
+      </div>
+      <div class="pulse-card">
+        <div class="pulse-label">Inquiries/mo</div>
+        <div class="pulse-val green">14</div>
+        <div class="pulse-status green">✓ Active</div>
+      </div>
+      <div class="pulse-card">
+        <div class="pulse-label">Vacancies</div>
+        <div class="pulse-val green">0</div>
+        <div class="pulse-status green">✓ Staffed</div>
+      </div>
+      <div class="pulse-card">
+        <div class="pulse-label">Compliance</div>
+        <div class="pulse-val amber">1</div>
+        <div class="pulse-status amber">⚠ Renewal</div>
+      </div>
+      <div class="pulse-card">
+        <div class="pulse-label">Monthly P&amp;L</div>
+        <div class="pulse-val green">+</div>
+        <div class="pulse-status green">✓ Surplus</div>
+      </div>
+    </div>
+    <div class="reveal stagger-3" style="font-size:var(--small-size); color:var(--ink-faint); margin-top:clamp(0.4rem,1vh,0.8rem)">Sample data for illustration · Real data flows from Simption ERP via aurora-scraper</div>
+  </div>
+</section>
+
+<!-- SLIDE 10: RISK MAP -->
+<section class="slide" id="slide-10">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--gold)">Risk Intelligence</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--parchment); margin-bottom:0;" class="reveal stagger-1">Know Before It Breaks</div>
+    <div class="risk-grid reveal stagger-2">
+      <div class="risk-card high">
+        <div class="risk-level">High · Act Now</div>
+        <div class="risk-title">National Chain Expansion</div>
+        <div class="risk-desc">DPS/Ryan enter peri-urban Varanasi within 3–7 years. Build institutional brand depth first.</div>
+      </div>
+      <div class="risk-card high">
+        <div class="risk-level">High · Monitor Always</div>
+        <div class="risk-title">Key Teacher Departure</div>
+        <div class="risk-desc">Single teacher for Class 9–10 Math/Science = single point of failure. Track via HR dashboard.</div>
+      </div>
+      <div class="risk-card medium">
+        <div class="risk-level">Medium · Plan For</div>
+        <div class="risk-title">Fee Collection Volatility</div>
+        <div class="risk-desc">Remittance disruption or drought hits rural UP first. Monthly installment options + cash reserve buffer.</div>
+      </div>
+      <div class="risk-card medium">
+        <div class="risk-level">Medium · Proactive</div>
+        <div class="risk-title">Grade 5→6 Churn</div>
+        <div class="risk-desc">Families "upgrade" to urban schools at this transition. Strong Grade 6–8 program is the retention lever.</div>
+      </div>
+      <div class="risk-card managed">
+        <div class="risk-level">Managed · Stay Compliant</div>
+        <div class="risk-title">CBSE Regulatory</div>
+        <div class="risk-desc">Affiliation, fire safety, teacher qualification — all tracked with 90-day advance alerts on dashboard.</div>
+      </div>
+      <div class="risk-card managed">
+        <div class="risk-level">Structural · Accept</div>
+        <div class="risk-title">Brain Drain Post Grade 10</div>
+        <div class="risk-desc">Students leave for Grade 11–12 elsewhere. Not school failure — UP pattern. Focus: maximize Grade 10 board results.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 11: 20-YEAR ROADMAP -->
+<section class="slide" id="slide-11">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--accent)">The Plan</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--ink); margin-bottom:0;" class="reveal stagger-1">20-Year Strategic Roadmap</div>
+    <div class="roadmap reveal stagger-2">
+      <div class="roadmap-phase p1">
+        <div class="roadmap-years">2026–2028</div>
+        <div class="roadmap-phase-title">Foundation</div>
+        <ul class="roadmap-items">
+          <li>Launch this dashboard</li>
+          <li>NEP 5+3+3+4 alignment</li>
+          <li>Smart classroom install</li>
+          <li>Land acquisition</li>
+          <li>First CSR partnership</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase p2">
+        <div class="roadmap-years">2028–2031</div>
+        <div class="roadmap-phase-title">Growth</div>
+        <ul class="roadmap-items">
+          <li>Board results above district avg</li>
+          <li>Expand to 85% capacity trigger</li>
+          <li>Launch Grade 11–12</li>
+          <li>Teacher housing program</li>
+          <li>Nature curriculum live</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase p3">
+        <div class="roadmap-years">2031–2036</div>
+        <div class="roadmap-phase-title">Dominance</div>
+        <ul class="roadmap-items">
+          <li>Obvious quality leader in 15km</li>
+          <li>Alumni network as proof</li>
+          <li>Sports &amp; co-curricular infra</li>
+          <li>Intl. school partnership</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase p4">
+        <div class="roadmap-years">2036–2046</div>
+        <div class="roadmap-phase-title">Institution</div>
+        <ul class="roadmap-items">
+          <li>20yr track record</li>
+          <li>CSR partner of choice</li>
+          <li>Franchise possibility</li>
+          <li>The founder's vision, lived</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 12: CSR STRATEGY -->
+<section class="slide" id="slide-12">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--gold)">External Funding</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--parchment); margin-bottom:0;" class="reveal stagger-1">CSR Is Your Grant Channel</div>
+    <div class="csr-list reveal stagger-2">
+      <div class="csr-row">
+        <div class="csr-org">Reliance Foundation</div>
+        <div class="csr-focus">Rural education, scholarships, Education for All — active in UP</div>
+        <span class="csr-badge active">Active in UP</span>
+      </div>
+      <div class="csr-row">
+        <div class="csr-org">Infosys Foundation</div>
+        <div class="csr-focus">Digital literacy, STEM, teacher training — has funded UP schools</div>
+        <span class="csr-badge active">Active in UP</span>
+      </div>
+      <div class="csr-row">
+        <div class="csr-org">Tata Trusts</div>
+        <div class="csr-focus">Digital literacy, rural STEM focus — UP qualifies</div>
+        <span class="csr-badge active">Active in UP</span>
+      </div>
+      <div class="csr-row">
+        <div class="csr-org">HDFC Parivartan</div>
+        <div class="csr-focus">Rural school infrastructure — classrooms, labs, libraries</div>
+        <span class="csr-badge active">Active in UP</span>
+      </div>
+      <div class="csr-row">
+        <div class="csr-org">Expressway Industrialists</div>
+        <div class="csr-focus">Pharma/textile/logistics in Ganga Expressway corridor — mandatory 2% CSR coming</div>
+        <span class="csr-badge emerging">Emerging · 2027+</span>
+      </div>
+    </div>
+    <div class="reveal stagger-3" style="font-size:var(--small-size); color:rgba(247,244,239,0.4); margin-top:clamp(0.4rem,1vh,0.8rem)">
+      Note: PM SHRI, Samagra Shiksha, SSA — all exclusively government-school grants. CSR is the viable external capital channel for private CBSE schools.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 13: IMPLEMENTATION -->
+<section class="slide" id="slide-13">
+  <div class="slide-inner">
+    <div class="eyebrow reveal" style="color:var(--accent)">Build Plan</div>
+    <div style="font-family:'Fraunces',serif; font-size:var(--h2-size); font-weight:700; color:var(--ink); margin-bottom:0;" class="reveal stagger-1">Dashboard in 4 Phases</div>
+    <div class="impl-phases reveal stagger-2">
+      <div class="impl-phase ph1">
+        <div class="impl-phase-num" style="color:var(--ink)">1</div>
+        <div class="impl-phase-title">Foundation</div>
+        <div class="impl-phase-time">Month 1–2</div>
+        <ul class="impl-items">
+          <li>Founder Pulse (10 KPIs)</li>
+          <li>Compliance Calendar</li>
+          <li>Fee Defaulter Tracker</li>
+          <li>Cash Reserve gauge</li>
+        </ul>
+      </div>
+      <div class="impl-phase ph2">
+        <div class="impl-phase-num" style="color:var(--accent)">2</div>
+        <div class="impl-phase-title">Operations</div>
+        <div class="impl-phase-time">Month 3–4</div>
+        <ul class="impl-items">
+          <li>Full Financial Dashboard</li>
+          <li>Attendance Heatmaps</li>
+          <li>Enrollment + Capacity</li>
+          <li>Staff HR Metrics</li>
+        </ul>
+      </div>
+      <div class="impl-phase ph3">
+        <div class="impl-phase-num" style="color:var(--green)">3</div>
+        <div class="impl-phase-title">Analytics</div>
+        <div class="impl-phase-time">Month 5–6</div>
+        <ul class="impl-items">
+          <li>Academic Performance</li>
+          <li>Enrollment Funnel</li>
+          <li>Break-Even Model</li>
+          <li>At-Risk Student Tracker</li>
+        </ul>
+      </div>
+      <div class="impl-phase ph4">
+        <div class="impl-phase-num" style="color:var(--gold)">4</div>
+        <div class="impl-phase-title">Strategic</div>
+        <div class="impl-phase-time">Month 7+</div>
+        <ul class="impl-items">
+          <li>Capacity Planning</li>
+          <li>Community Impact</li>
+          <li>NPS &amp; Brand Dashboard</li>
+          <li>CSR Pipeline Tracker</li>
+        </ul>
+      </div>
+    </div>
+    <div class="reveal stagger-3" style="font-size:var(--body-size); color:var(--ink-muted); line-height:1.5; max-width:640px">
+      Stack: Simption ERP → aurora-scraper (Puppeteer) → Supabase → aurora-dashboard (React + Vite + TypeScript + Tailwind) → Vercel. Maintenance: &lt;1 hr/month.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 14: THE PHILOSOPHY -->
+<section class="slide" id="slide-14">
+  <div class="bg-geo"><div class="circle-1"></div></div>
+  <div class="slide-inner" style="position:relative; z-index:1; align-items:center; justify-content:center">
+    <div class="eyebrow reveal" style="color:rgba(247,244,239,0.3); text-align:center">The Why</div>
+    <div class="philosophy-quote reveal stagger-1">
+      "Sir taught us how <em>small we are</em><br>in the universe — and how<br><em>important our actions are</em> on Earth."
+    </div>
+    <div class="philosophy-attr reveal stagger-2">— The 20-year vision · Aurora Thread School</div>
+  </div>
+</section>
+
+<!-- SLIDE 15: CLOSING -->
+<section class="slide" id="slide-15">
+  <div class="bg-geo"><div class="circle-a"></div></div>
+  <div class="slide-inner" style="position:relative; z-index:1;">
+    <div class="eyebrow reveal" style="color:rgba(255,255,255,0.4)">Next Steps</div>
+    <div class="closing-title reveal stagger-1">Start<br>Building.</div>
+    <div class="closing-steps reveal stagger-2">
+      <div class="closing-step">
+        <div class="step-num">1</div>
+        <span>Choose Founder Pulse layout — then we wire up the data from Simption</span>
+      </div>
+      <div class="closing-step">
+        <div class="step-num">2</div>
+        <span>Phase 1 dashboard live in 4–6 weeks: Pulse + Compliance + Defaulters</span>
+      </div>
+      <div class="closing-step">
+        <div class="step-num">3</div>
+        <span>First CSR pitch with Community Impact data by end of 2026</span>
+      </div>
+      <div class="closing-step">
+        <div class="step-num">4</div>
+        <span>Land acquisition conversation — before Ganga Expressway prices move further</span>
+      </div>
+      <div class="closing-step">
+        <div class="step-num">5</div>
+        <span>NEP curriculum review — Foundational Stage program design</span>
+      </div>
+    </div>
+    <div class="reveal stagger-3" style="margin-top:clamp(1rem,2.5vh,2rem); font-size:var(--small-size); color:rgba(255,255,255,0.3)">
+      Aurora OS · aurora-expenses · Strategic Analysis March 2026 · Akshararambh Public School, Varanasi
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// =============================================
+// PRESENTATION CONTROLLER
+// =============================================
+class PresentationController {
+  constructor() {
+    this.slides = Array.from(document.querySelectorAll('.slide'));
+    this.dots = Array.from(document.querySelectorAll('.nav-dot'));
+    this.counter = document.getElementById('slide-counter');
+    this.current = 0;
+    this.isScrolling = false;
+
+    this.bindEvents();
+    this.activateSlide(0);
+    this.setupObserver();
+  }
+
+  activateSlide(index) {
+    this.slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    this.dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    this.current = index;
+    const n = String(index + 1).padStart(2, '0');
+    const t = String(this.slides.length).padStart(2, '0');
+    if (this.counter) this.counter.textContent = `${n} / ${t}`;
+  }
+
+  goTo(index) {
+    if (index < 0 || index >= this.slides.length) return;
+    this.slides[index].scrollIntoView({ behavior: 'smooth' });
+    this.activateSlide(index);
+  }
+
+  next() { this.goTo(this.current + 1); }
+  prev() { this.goTo(this.current - 1); }
+
+  setupObserver() {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.intersectionRatio > 0.5) {
+          const idx = this.slides.indexOf(entry.target);
+          if (idx !== -1) this.activateSlide(idx);
+        }
+      });
+    }, { threshold: 0.5 });
+    this.slides.forEach(s => obs.observe(s));
+  }
+
+  bindEvents() {
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault(); this.next();
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault(); this.prev();
+      } else if (e.key === 'Home') {
+        e.preventDefault(); this.goTo(0);
+      } else if (e.key === 'End') {
+        e.preventDefault(); this.goTo(this.slides.length - 1);
+      }
+    });
+
+    // Touch support
+    let touchY = 0;
+    document.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; });
+    document.addEventListener('touchend', e => {
+      const dy = touchY - e.changedTouches[0].clientY;
+      if (Math.abs(dy) > 40) { dy > 0 ? this.next() : this.prev(); }
+    });
+  }
+}
+
+// Expose goTo globally for nav dots
+function goTo(index) { window._deck && window._deck.goTo(index); }
+
+// Animate in on first load
+const ra = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.reveal').forEach(el => el.style.animationPlayState = 'running');
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.slide').forEach(s => ra.observe(s));
+
+window.addEventListener('load', () => {
+  window._deck = new PresentationController();
+});
+</script>
+</body>
+</html>

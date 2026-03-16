@@ -1,0 +1,145 @@
+<h2>Which dashboard layout feels right for the Founder Pulse view?</h2>
+<p class="subtitle">This is the screen you'll check every morning — mobile-first, 60-second read. Pick the structure that resonates.</p>
+
+<div class="cards">
+
+  <!-- Option A: Command Center -->
+  <div class="card" data-choice="command-center" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1A1714; padding:16px; height:220px; display:flex; flex-direction:column; gap:8px; overflow:hidden;">
+      <div style="font-size:9px; color:#8B8175; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px; font-family:monospace">Aurora OS · Today</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px">
+        <div style="background:rgba(5,150,105,0.15); border:1px solid rgba(5,150,105,0.3); border-radius:6px; padding:8px">
+          <div style="font-size:8px; color:#6B7280; margin-bottom:2px">ENROLLED</div>
+          <div style="font-size:20px; font-weight:700; color:#34D399">347</div>
+          <div style="font-size:8px; color:#059669">↑ +23 YoY</div>
+        </div>
+        <div style="background:rgba(5,150,105,0.15); border:1px solid rgba(5,150,105,0.3); border-radius:6px; padding:8px">
+          <div style="font-size:8px; color:#6B7280; margin-bottom:2px">FEE COLL.</div>
+          <div style="font-size:20px; font-weight:700; color:#34D399">94%</div>
+          <div style="font-size:8px; color:#059669">✓ On target</div>
+        </div>
+        <div style="background:rgba(217,119,6,0.15); border:1px solid rgba(217,119,6,0.3); border-radius:6px; padding:8px">
+          <div style="font-size:8px; color:#6B7280; margin-bottom:2px">CASH (mo)</div>
+          <div style="font-size:20px; font-weight:700; color:#FCD34D">2.4</div>
+          <div style="font-size:8px; color:#D97706">⚠ Watch</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div style="background:rgba(5,150,105,0.10); border:1px solid rgba(5,150,105,0.2); border-radius:6px; padding:8px">
+          <div style="font-size:8px; color:#6B7280; margin-bottom:2px">STAFF TODAY</div>
+          <div style="font-size:16px; font-weight:700; color:#34D399">18/19</div>
+        </div>
+        <div style="background:rgba(5,150,105,0.10); border:1px solid rgba(5,150,105,0.2); border-radius:6px; padding:8px">
+          <div style="font-size:8px; color:#6B7280; margin-bottom:2px">STUDENTS</div>
+          <div style="font-size:16px; font-weight:700; color:#34D399">91%</div>
+        </div>
+      </div>
+      <div style="background:rgba(220,38,38,0.12); border:1px solid rgba(220,38,38,0.25); border-radius:6px; padding:8px; margin-top:2px">
+        <div style="font-size:9px; color:#FCA5A5">⚠ 3 students with dues &gt;90 days · CBSE affiliation renewal in 28 days</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · Command Center</h3>
+      <p>Dark mission control. Monospace numbers, high-contrast status colors. Dense but scannable. Feels like a cockpit.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Warm Cards -->
+  <div class="card" data-choice="warm-cards" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#F7F4EF; padding:16px; height:220px; display:flex; flex-direction:column; gap:8px; overflow:hidden;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px">
+        <div style="width:24px; height:24px; background:linear-gradient(135deg,#D4A853,#E8944A); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#0D0D10; font-family:serif">A</div>
+        <div style="font-family:serif; font-size:13px; color:#1A1714; font-weight:600">Aurora Thread School</div>
+        <div style="margin-left:auto; font-size:9px; color:#8B8175">Mon 16 Mar</div>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px">
+        <div style="background:white; border-radius:8px; padding:10px; border:1px solid rgba(26,23,20,0.08); box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+          <div style="font-size:8px; color:#8B8175; font-weight:600; margin-bottom:3px; text-transform:uppercase">Students</div>
+          <div style="font-size:22px; font-weight:700; color:#1A1714; font-family:serif; line-height:1">347</div>
+          <div style="font-size:9px; color:#059669; margin-top:2px">↑ +23</div>
+        </div>
+        <div style="background:white; border-radius:8px; padding:10px; border:1px solid rgba(26,23,20,0.08); box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+          <div style="font-size:8px; color:#8B8175; font-weight:600; margin-bottom:3px; text-transform:uppercase">Collection</div>
+          <div style="font-size:22px; font-weight:700; color:#059669; font-family:serif; line-height:1">94%</div>
+          <div style="font-size:9px; color:#8B8175; margin-top:2px">Target 92%</div>
+        </div>
+        <div style="background:#FEF9EE; border-radius:8px; padding:10px; border:1px solid #FDE68A; box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+          <div style="font-size:8px; color:#8B8175; font-weight:600; margin-bottom:3px; text-transform:uppercase">Cash Reserve</div>
+          <div style="font-size:22px; font-weight:700; color:#D97706; font-family:serif; line-height:1">2.4mo</div>
+          <div style="font-size:9px; color:#D97706; margin-top:2px">↑ from 2.1</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:5px">
+        <div style="background:white; border-radius:6px; padding:8px; border:1px solid rgba(26,23,20,0.06); text-align:center">
+          <div style="font-size:8px; color:#8B8175">Attend.</div>
+          <div style="font-size:14px; font-weight:700; color:#059669">91%</div>
+        </div>
+        <div style="background:white; border-radius:6px; padding:8px; border:1px solid rgba(26,23,20,0.06); text-align:center">
+          <div style="font-size:8px; color:#8B8175">Staff</div>
+          <div style="font-size:14px; font-weight:700; color:#059669">18/19</div>
+        </div>
+        <div style="background:white; border-radius:6px; padding:8px; border:1px solid rgba(26,23,20,0.06); text-align:center">
+          <div style="font-size:8px; color:#8B8175">Inquiries</div>
+          <div style="font-size:14px; font-weight:700; color:#059669">12</div>
+        </div>
+        <div style="background:#FEF2F2; border-radius:6px; padding:8px; border:1px solid rgba(220,38,38,0.15); text-align:center">
+          <div style="font-size:8px; color:#8B8175">Alerts</div>
+          <div style="font-size:14px; font-weight:700; color:#DC2626">2</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · Warm Cards</h3>
+      <p>Matches the existing Aurora parchment design language. Light, spacious, friendly. Feels like morning chai — calm clarity.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Split Column -->
+  <div class="card" data-choice="split-column" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#FFFFFF; padding:0; height:220px; display:flex; overflow:hidden; border-radius:8px;">
+      <div style="width:44%; background:#4338CA; padding:14px; display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div style="font-size:9px; color:rgba(255,255,255,0.5); font-weight:600; text-transform:uppercase; letter-spacing:0.08em">Aurora OS</div>
+          <div style="font-family:serif; font-size:16px; color:white; font-weight:700; margin-top:4px; line-height:1.2">School<br>Health</div>
+        </div>
+        <div>
+          <div style="font-size:36px; font-weight:800; color:white; font-family:serif; line-height:1">347</div>
+          <div style="font-size:9px; color:rgba(255,255,255,0.6); margin-top:2px">Students enrolled</div>
+          <div style="width:100%; height:2px; background:rgba(255,255,255,0.15); border-radius:1px; margin-top:10px">
+            <div style="width:94%; height:100%; background:#A5F3FC; border-radius:1px"></div>
+          </div>
+          <div style="font-size:8px; color:rgba(255,255,255,0.5); margin-top:3px">94% fee collected</div>
+        </div>
+      </div>
+      <div style="flex:1; background:#F8F9FA; padding:12px; display:flex; flex-direction:column; gap:6px; justify-content:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:white; border-radius:6px; border:1px solid #E5E7EB">
+          <span style="font-size:9px; color:#6B7280">Cash Reserve</span>
+          <span style="font-size:11px; font-weight:700; color:#D97706">2.4 mo</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:white; border-radius:6px; border:1px solid #E5E7EB">
+          <span style="font-size:9px; color:#6B7280">Attendance</span>
+          <span style="font-size:11px; font-weight:700; color:#059669">91%</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:white; border-radius:6px; border:1px solid #E5E7EB">
+          <span style="font-size:9px; color:#6B7280">Teachers</span>
+          <span style="font-size:11px; font-weight:700; color:#059669">18/19</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:#FEF2F2; border-radius:6px; border:1px solid #FECACA">
+          <span style="font-size:9px; color:#6B7280">⚠ Alerts</span>
+          <span style="font-size:11px; font-weight:700; color:#DC2626">2 urgent</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:white; border-radius:6px; border:1px solid #E5E7EB">
+          <span style="font-size:9px; color:#6B7280">New Inquiries</span>
+          <span style="font-size:11px; font-weight:700; color:#4338CA">12 this mo</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · Split Column</h3>
+      <p>Strong left panel (accent) for the headline number. Right panel for supporting stats. Clear visual hierarchy. Works well on mobile.</p>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top:20px; font-size:12px; color:#666">Click a card to select your preference, or let me know in the terminal if you want to mix elements from multiple options.</p>

@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora Thread School — Strategic Growth & Dashboard Analysis 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  @page {
+    size: A4;
+    margin: 20mm 18mm;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #F7F4EF;
+    color: #1A1714;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .page-wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 48px;
+    background: #FFFFFF;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 0 40px;
+    border-bottom: 3px solid #4338CA;
+    page-break-after: always;
+  }
+
+  .cover-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #4338CA;
+    margin-bottom: 20px;
+  }
+
+  .cover-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #1A1714;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .cover-subtitle {
+    font-size: 16px;
+    color: #6B5E52;
+    margin-bottom: 40px;
+    max-width: 520px;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .cover-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cover-meta-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8B8175;
+  }
+
+  .cover-meta-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1A1714;
+  }
+
+  /* ── Sections ── */
+  .section {
+    margin-bottom: 40px;
+    page-break-inside: avoid;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(26,23,20,0.10);
+  }
+
+  .section-number {
+    width: 28px;
+    height: 28px;
+    background: #4338CA;
+    color: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1A1714;
+  }
+
+  .section-body {
+    font-size: 13px;
+    color: #3A3330;
+    line-height: 1.7;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 16px 0;
+  }
+
+  th {
+    background: #F7F4EF;
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid rgba(26,23,20,0.10);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6B5E52;
+  }
+
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(26,23,20,0.06);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(67,56,202,0.03); }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-left: 3px solid #4338CA;
+    background: rgba(67,56,202,0.05);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+
+  .callout.warning {
+    border-left-color: #D97706;
+    background: rgba(217,119,6,0.06);
+  }
+
+  .callout.success {
+    border-left-color: #059669;
+    background: rgba(5,150,105,0.06);
+  }
+
+  .callout strong { color: #1A1714; }
+
+  /* ── KPI Grid ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .kpi-card {
+    background: #F7F4EF;
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid rgba(26,23,20,0.08);
+  }
+
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8B8175;
+    margin-bottom: 4px;
+  }
+
+  .kpi-value {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #4338CA;
+    line-height: 1;
+  }
+
+  .kpi-sub {
+    font-size: 10px;
+    color: #8B8175;
+    margin-top: 3px;
+  }
+
+  /* ── Timeline ── */
+  .timeline {
+    margin: 20px 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+  }
+
+  .timeline-marker {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+    background: #4338CA;
+    border-radius: 50%;
+    margin-top: 4px;
+  }
+
+  .timeline-line {
+    width: 2px;
+    flex: 1;
+    background: rgba(67,56,202,0.2);
+    margin-top: 2px;
+  }
+
+  .timeline-content {}
+  .timeline-year {
+    font-weight: 700;
+    font-size: 12px;
+    color: #4338CA;
+    margin-bottom: 4px;
+  }
+  .timeline-items {
+    font-size: 12px;
+    color: #3A3330;
+    line-height: 1.6;
+  }
+  .timeline-items li {
+    list-style: none;
+    padding-left: 14px;
+    position: relative;
+    margin-bottom: 2px;
+  }
+  .timeline-items li::before {
+    content: '–';
+    position: absolute;
+    left: 0;
+    color: #8B8175;
+  }
+
+  /* ── Dashboard Architecture ── */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .dash-card {
+    border: 1px solid rgba(26,23,20,0.10);
+    border-radius: 10px;
+    padding: 14px;
+    background: #FFFFFF;
+  }
+
+  .dash-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .dash-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .dash-card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1A1714;
+  }
+
+  .dash-card-items {
+    font-size: 11px;
+    color: #6B5E52;
+    line-height: 1.7;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .dash-card-items li::before {
+    content: '· ';
+    color: #8B8175;
+  }
+
+  /* ── Insight box ── */
+  .insight-box {
+    background: linear-gradient(135deg, rgba(67,56,202,0.08), rgba(67,56,202,0.03));
+    border: 1px solid rgba(67,56,202,0.15);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+
+  .insight-box h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    color: #1A1714;
+    margin-bottom: 8px;
+  }
+
+  /* ── Risk table ── */
+  .risk-high { color: #DC2626; font-weight: 600; }
+  .risk-med { color: #D97706; font-weight: 600; }
+  .risk-low { color: #059669; font-weight: 600; }
+
+  /* ── Footer ── */
+  .doc-footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(26,23,20,0.10);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #8B8175;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: white; }
+    .page-wrapper { padding: 0; box-shadow: none; }
+    .cover { min-height: auto; }
+    .section { page-break-inside: avoid; }
+  }
+
+  /* ── Page break helpers ── */
+  .page-break { page-break-before: always; }
+
+  h2, h3 { page-break-after: avoid; }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- COVER PAGE -->
+  <div class="cover">
+    <div class="cover-eyebrow">Strategic Consultant Report · Confidential</div>
+    <div class="cover-title">Aurora Thread School<br>Growth Strategy &amp;<br>Dashboard Architecture</div>
+    <div class="cover-subtitle">A 20-year strategic analysis for Akshararambh Public School, Varanasi — covering economic outlook, competitive landscape, government policy, infrastructure, and a complete school intelligence dashboard framework.</div>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Prepared For</span>
+        <span class="cover-meta-value">School Founder</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Date</span>
+        <span class="cover-meta-value">March 2026</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">School</span>
+        <span class="cover-meta-value">Akshararambh Public School, Varanasi</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Board</span>
+        <span class="cover-meta-value">CBSE · Nursery to 10th</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">System</span>
+        <span class="cover-meta-value">Aurora OS · aurora-expenses v1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXECUTIVE SUMMARY -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">ES</div>
+      <div class="section-title">Executive Summary</div>
+    </div>
+    <div class="section-body">
+      <p style="margin-bottom:12px">The macro environment for a quality CBSE village school near Varanasi is <strong>strongly favorable over the next 10–20 years</strong>. Four simultaneous infrastructure investments — Ganga Expressway, Varanasi Airport expansion, Purvanchal Expressway, and Smart City completion — are transforming the economic character of Varanasi's surrounding villages.</p>
+      <p style="margin-bottom:16px">UP's per-capita income in the Varanasi belt is projected to 3–4× by 2035 if the state achieves even 60% of its $1 trillion economy target. The private school market is growing at 11–12% CAGR nationally. The window to establish dominant brand equity in the village CBSE segment is <strong>now through 2031</strong> — before national chains expand peri-urban.</p>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">K-12 Market Growth</div>
+          <div class="kpi-value">12%</div>
+          <div class="kpi-sub">CAGR, national (to 2033)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Airport Expansion</div>
+          <div class="kpi-value">₹2,870Cr</div>
+          <div class="kpi-sub">Cabinet-approved, 2024–27</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">UP Economy Target</div>
+          <div class="kpi-value">$1T</div>
+          <div class="kpi-sub">By 2027–29 (10.8% CAGR)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">First-Mover Window</div>
+          <div class="kpi-value">5–7 yrs</div>
+          <div class="kpi-sub">Before chains go village</div>
+        </div>
+      </div>
+
+      <div class="callout success">
+        <strong>Strategic Conclusion:</strong> The founder's vision — nature education, cosmic awareness, "one connection can make anyone feel worth living" — is the most defensible competitive position possible. National chains compete on capital. You compete on soul and community trust. Over 20 years, soul wins.
+      </div>
+    </div>
+  </div>
+
+  <!-- VARANASI MACRO -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <div class="section-title">The Varanasi Macro Opportunity</div>
+    </div>
+    <div class="section-body">
+      <p style="margin-bottom:16px">Four independent forces are converging on Varanasi simultaneously — a rare alignment that will transform the economic character of surrounding villages within 5 years.</p>
+
+      <table>
+        <thead>
+          <tr><th>Infrastructure Force</th><th>Scale</th><th>Timeline</th><th>Impact on School Catchment</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Ganga Expressway</strong></td>
+            <td>75 Varanasi villages in corridor</td>
+            <td>2028 (Prayagraj leg)</td>
+            <td>Land values +15–30% already. Aspirational families moving in. New logistics/industrial jobs nearby.</td>
+          </tr>
+          <tr>
+            <td><strong>Varanasi Airport Expansion</strong></td>
+            <td>₹2,870 Cr · 3.9→9.9 MPPA</td>
+            <td>July 2027</td>
+            <td>Corporate presence rises. International school partnerships possible. Varanasi becomes economic hub.</td>
+          </tr>
+          <tr>
+            <td><strong>Purvanchal Expressway</strong></td>
+            <td>Varanasi–Lucknow: 3.5 hrs</td>
+            <td>Operational now</td>
+            <td>Logistics, manufacturing, service sector jobs migrating east. Middle-class income growth in catchment.</td>
+          </tr>
+          <tr>
+            <td><strong>Smart City Completion</strong></td>
+            <td>1 of 18/100 cities at 100%</td>
+            <td>Complete</td>
+            <td>Better roads, KICCC city management, Japan-backed tech transfer. Urban professionalism raises aspirations.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Economic Outlook:</strong> UP GSDP growing at 10.8% CAGR — from ₹13.30L Cr (2016–17) to ₹30.25L Cr (2024–25). Eastern UP per-capita income currently ~₹12,741–15,000/yr. Projected to reach ₹40,000–60,000 by 2035 — a 3–4× increase. This is the single most important variable for fee affordability and school growth.
+      </div>
+
+      <h3 style="font-family: Fraunces, serif; font-size:15px; margin: 20px 0 10px; color:#1A1714">Demographic Drivers</h3>
+      <table>
+        <thead><tr><th>Indicator</th><th>Current (2026)</th><th>2030 Projection</th><th>School Implication</th></tr></thead>
+        <tbody>
+          <tr><td>Female literacy, Varanasi</td><td>~67%</td><td>~75%+</td><td>Literate mothers = strongest driver of private school enrollment. Target mothers in all marketing.</td></tr>
+          <tr><td>UP school-age population (6–14)</td><td>~3.5 crore</td><td>Growing</td><td>Structural demand — not cyclical.</td></tr>
+          <tr><td>Pre-primary enrollment (national)</td><td>77.4% (2024)</td><td>85%+</td><td>Nursery-KG program is the highest-leverage long-term enrollment investment.</td></tr>
+          <tr><td>CBSE schools nationally</td><td>25,000+</td><td>35,000+</td><td>Private CBSE is the aspirational standard. Village families will migrate to CBSE from state board.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- COMPETITIVE LANDSCAPE -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <div class="section-title">Competitive Landscape &amp; First-Mover Window</div>
+    </div>
+    <div class="section-body">
+      <p style="margin-bottom:16px">There are currently <strong>115 CBSE schools in Varanasi city</strong>, but the village segment is largely uncontested. National chains are in urban Varanasi today — they expand peri-urban in 3–5 years. <strong>That is your moat-building window.</strong></p>
+
+      <table>
+        <thead><tr><th>Tier</th><th>Fee Range/yr</th><th>Players</th><th>Your Position</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Premium</strong></td><td>₹1.5L–5L</td><td>DPS Kashi, Jaipuria, Glenhill</td><td>Not competing here. These families seek a different product.</td></tr>
+          <tr><td><strong>Mid-Market</strong></td><td>₹30K–1.5L</td><td>Various English-medium CBSE</td><td>Your growth trajectory — where you're heading as incomes rise.</td></tr>
+          <tr><td><strong>Village/Rural</strong></td><td>₹5K–30K</td><td>Sparse. Mostly government.</td><td><strong>Your current territory. Nearly uncontested.</strong></td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning">
+        <strong>Threat to Watch:</strong> DPS, Ryan International, Jaipuria are 3–5 years from expanding to peri-urban Varanasi. A national chain within 10km within the next decade would directly target your top-paying families. Build institutional depth now that chains cannot replicate: community rootedness, founder trust, specialized nature-education curriculum.
+      </div>
+
+      <h3 style="font-family: Fraunces, serif; font-size:15px; margin: 20px 0 10px; color:#1A1714">Coaching Institute Ecosystem (Parallel Threat)</h3>
+      <p>ALLEN, Sri Chaitanya, Narayana, CATJEE, Rankers — all operating full branches in Varanasi. By Grade 8–10, students attend 3–5 hrs/day of coaching in addition to school. <strong>Mitigation:</strong> Integrate competitive exam foundation (Olympiads, NTSE, IIT-JEE foundation) into your Grade 7–10 curriculum. Parents who believe the school "gets" competitive culture will not seek external coaching until much later.</p>
+    </div>
+  </div>
+
+  <!-- GOVERNMENT POLICY -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <div class="section-title">Government Policy &amp; NEP 2020</div>
+    </div>
+    <div class="section-body">
+      <p style="margin-bottom:12px">NEP 2020 is in full rollout (2025–26). The 5+3+3+4 structure is now mandatory. Only <strong>17.55% of UP government schools</strong> have smart classrooms — this gap is your competitive moat.</p>
+
+      <table>
+        <thead><tr><th>NEP Stage</th><th>Age Group</th><th>Approach</th><th>Your Opportunity</th></tr></thead>
+        <tbody>
+          <tr><td>Foundational</td><td>3–8 (Nur–Grade 2)</td><td>Play-based learning</td><td>Build an exceptional Foundational Stage program. First school commitment from parents — highest loyalty moment.</td></tr>
+          <tr><td>Preparatory</td><td>8–11 (Grade 3–5)</td><td>Activity-based</td><td>Science kits, nature projects, outdoor learning. Your differentiation begins here.</td></tr>
+          <tr><td>Middle</td><td>11–14 (Grade 6–8)</td><td>Subject integration</td><td>Cross-disciplinary projects. "How does math explain the cosmos?" is your brand in action.</td></tr>
+          <tr><td>Secondary</td><td>14–18 (Grade 9–12)</td><td>Flexible streams</td><td>No hard science/arts split. Board exam excellence. Consider Grade 11–12 expansion.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Government Grants Reality Check:</strong> PM SHRI, Samagra Shiksha, SSA — all exclusively for government schools. Direct government grants are effectively unavailable to private CBSE schools. <strong>CSR funding is your primary external capital channel.</strong> The Community Impact Dashboard you'll build is your CSR fundraising tool.
+      </div>
+
+      <p style="margin-top:12px"><strong>RTE 25% Quota:</strong> Mandatory 25% seats for EWS children, with government reimbursement (at government fee rates). Ensure all EWS seats are filled and reimbursements are filed rigorously — this is real cash flow you may be leaving unclaimed.</p>
+    </div>
+  </div>
+
+  <!-- CSR & EXTERNAL FUNDING -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <div class="section-title">CSR &amp; External Funding Strategy</div>
+    </div>
+    <div class="section-body">
+      <p style="margin-bottom:12px">UP is among the <strong>top 10 states</strong> receiving corporate CSR funding in education nationally. The school adoption model — where a company partners with one school for 3–5 years — is the dominant growing CSR pattern.</p>
+
+      <table>
+        <thead><tr><th>Funder</th><th>Focus Areas</th><th>Contact Strategy</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Reliance Foundation</strong></td><td>Rural education, scholarships, Education for All</td><td>Active in UP. Apply via RF portal with impact data.</td></tr>
+          <tr><td><strong>Infosys Foundation / Springboard</strong></td><td>Digital literacy, STEM, teacher training</td><td>Has funded UP schools. Present digital learning outcomes.</td></tr>
+          <tr><td><strong>Tata Trusts</strong></td><td>Digital literacy, STEM, rural focus</td><td>Rural UP qualifies. Apply with first-gen learner data.</td></tr>
+          <tr><td><strong>HDFC Bank Parivartan</strong></td><td>Rural schools, infrastructure</td><td>Classroom, lab, library infrastructure grants.</td></tr>
+          <tr><td><strong>Expressway Corridor Industrialists</strong></td><td>Local CSR obligation</td><td>Pharma/textile/logistics parks in Ganga Expressway corridor will have mandatory 2% CSR. Target these companies as they set up operations.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="insight-box">
+        <h3>The CSR Pitch Formula</h3>
+        <p style="font-size:12px; margin-top:6px">CSR program managers want schools they can feature in annual reports. Present: <strong>(1) first-generation learners %</strong> · <strong>(2) girls enrollment trend</strong> · <strong>(3) learning outcome improvements</strong> · <strong>(4) founder story — nature education, cosmic awareness</strong>. That combination is fundable. The Community Impact Dashboard you build is your live CSR pitch document.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD ARCHITECTURE -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <div class="section-title">Dashboard Architecture — School Intelligence Platform</div>
+    </div>
+    <div class="section-body">
+      <p style="margin-bottom:16px">You need a <strong>3-tier School Intelligence Platform</strong> — not just expense tracking. Here's the full architecture:</p>
+
+      <div style="background:#F7F4EF; border-radius:10px; padding:16px; font-family:monospace; font-size:11px; line-height:1.8; margin-bottom:16px; color:#3A3330;">
+        TIER 1 — FOUNDER PULSE (mobile, 60-second daily check)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;10 headline KPIs · Green / Amber / Red · No charts<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;↓ drill into ↓<br>
+        TIER 2 — MANAGER OPERATIONS (daily/weekly refresh)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Financial · Enrollment · Academic · Operations<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;↓ deep dive ↓<br>
+        TIER 3 — STRATEGIC ANALYTICS (monthly/annual)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Capacity planning · CSR pipeline · Compliance · NPS
+      </div>
+
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="dash-dot" style="background:#4338CA"></div>
+            <div class="dash-card-title">Financial Health</div>
+          </div>
+          <ul class="dash-card-items">
+            <li>Fee collection rate (daily)</li>
+            <li>Expense vs budget (monthly)</li>
+            <li>Cash reserve months</li>
+            <li>Defaulter aging buckets</li>
+            <li>Break-even enrollment chart</li>
+            <li>P&amp;L YTD summary</li>
+          </ul>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="dash-dot" style="background:#059669"></div>
+            <div class="dash-card-title">Enrollment &amp; Growth</div>
+          </div>
+          <ul class="dash-card-items">
+            <li>Students enrolled by class</li>
+            <li>Admission funnel conversion</li>
+            <li>Inquiry source tracking</li>
+            <li>Churn by grade</li>
+            <li>Capacity utilization %</li>
+            <li>Waitlist by class</li>
+          </ul>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="dash-dot" style="background:#D97706"></div>
+            <div class="dash-card-title">Academic Performance</div>
+          </div>
+          <ul class="dash-card-items">
+            <li>Board results (Class 10)</li>
+            <li>Subject-wise pass rates</li>
+            <li>At-risk student tracker</li>
+            <li>NEP FLN compliance (Gr 1–3)</li>
+            <li>5-year trend vs CBSE avg</li>
+            <li>Term assessment heatmap</li>
+          </ul>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="dash-dot" style="background:#7C3AED"></div>
+            <div class="dash-card-title">Operations &amp; HR</div>
+          </div>
+          <ul class="dash-card-items">
+            <li>Daily attendance heatmap</li>
+            <li>Teacher attendance &amp; punctuality</li>
+            <li>Staff retention rate</li>
+            <li>Key-person risk (single-teacher subjects)</li>
+            <li>Utility cost per student</li>
+            <li>Maintenance backlog</li>
+          </ul>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="dash-dot" style="background:#DC2626"></div>
+            <div class="dash-card-title">Compliance Calendar</div>
+          </div>
+          <ul class="dash-card-items">
+            <li>CBSE affiliation expiry</li>
+            <li>Fire safety certificate</li>
+            <li>Building safety cert</li>
+            <li>Teacher qualification %</li>
+            <li>UDISE+ submission status</li>
+            <li>RTE 25% quota status</li>
+          </ul>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="dash-dot" style="background:#0891B2"></div>
+            <div class="dash-card-title">Community Impact</div>
+          </div>
+          <ul class="dash-card-items">
+            <li>First-generation learners %</li>
+            <li>Girls enrollment trend</li>
+            <li>Scholarship students count</li>
+            <li>Village coverage map</li>
+            <li>NPS / parent satisfaction</li>
+            <li>CSR grant pipeline</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-family: Fraunces, serif; font-size:15px; margin: 20px 0 10px; color:#1A1714">Founder Pulse — The 10 Numbers</h3>
+      <table>
+        <thead><tr><th>#</th><th>Metric</th><th>Green</th><th>Amber</th><th>Red</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Total Students Enrolled</td><td>↑ YoY</td><td>Flat</td><td>↓ YoY</td></tr>
+          <tr><td>2</td><td>Fee Collection Rate (MTD)</td><td>≥92%</td><td>80–92%</td><td class="risk-high">&lt;80%</td></tr>
+          <tr><td>3</td><td>Cash Reserve (months)</td><td>≥3 months</td><td>1.5–3</td><td class="risk-high">&lt;1.5</td></tr>
+          <tr><td>4</td><td>Teacher Attendance (today)</td><td>≥95%</td><td>85–95%</td><td class="risk-high">&lt;85%</td></tr>
+          <tr><td>5</td><td>Student Attendance (today)</td><td>≥90%</td><td>80–90%</td><td class="risk-high">&lt;80%</td></tr>
+          <tr><td>6</td><td>Outstanding Dues (total)</td><td>Decreasing</td><td>Stable</td><td class="risk-high">Increasing</td></tr>
+          <tr><td>7</td><td>New Inquiries (this month)</td><td>≥15</td><td>5–15</td><td class="risk-high">&lt;5</td></tr>
+          <tr><td>8</td><td>Staff Vacancies</td><td>0</td><td>1–2</td><td class="risk-high">≥3</td></tr>
+          <tr><td>9</td><td>Compliance Status</td><td>All green</td><td>1 item amber</td><td class="risk-high">Any red</td></tr>
+          <tr><td>10</td><td>Monthly P&amp;L Status</td><td>Surplus</td><td>Break-even</td><td class="risk-high">Deficit</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FINANCIAL BENCHMARKS -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <div class="section-title">Financial Benchmarks for Your School Tier</div>
+    </div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>P&amp;L Line Item</th><th>% of Revenue (Village CBSE)</th><th>Your Target</th><th>Alert Threshold</th></tr></thead>
+        <tbody>
+          <tr><td>Salaries &amp; Benefits</td><td>55–65%</td><td>60%</td><td class="risk-high">&gt;70% = critical</td></tr>
+          <tr><td>Utilities (Electricity, Water, Generator)</td><td>3–6%</td><td>4%</td><td class="risk-med">&gt;8% = investigate</td></tr>
+          <tr><td>Infrastructure / Maintenance</td><td>3–8%</td><td>5%</td><td>Track as % of age of building</td></tr>
+          <tr><td>Teaching Materials &amp; Consumables</td><td>2–4%</td><td>3%</td><td>&nbsp;</td></tr>
+          <tr><td>Marketing &amp; Outreach</td><td>1–3%</td><td>2%</td><td>Word-of-mouth should replace this over time</td></tr>
+          <tr><td>Admin &amp; Overhead</td><td>2–4%</td><td>3%</td><td>&nbsp;</td></tr>
+          <tr><td><strong>Operating Surplus</strong></td><td><strong>5–15%</strong></td><td><strong>12–20%</strong></td><td><strong>0% = break-even; &lt;0% = deficit</strong></td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout success">
+        <strong>Break-Even Insight:</strong> With own land (no rent burden), operating surplus should reach 15–20% once enrollment crosses ~300 students. The break-even chart — showing the enrollment number where revenue crosses total costs — is the single most important visualization for your strategic decisions.
+      </div>
+
+      <p style="margin-top:12px"><strong>Fee Affordability Window (Varanasi rural belt):</strong> Median household income ~₹1.5–3L/year. Viable fee range: 5–15% of household income = ₹7,500–45,000/year. Beyond 15%, collection becomes difficult. Fee escalation runway: as incomes rise 3–4× by 2035, fee capacity rises proportionally — but lag household income growth by 1–2 years when setting increases.</p>
+    </div>
+  </div>
+
+  <!-- RISK MATRIX -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">7</div>
+      <div class="section-title">Risk Matrix</div>
+    </div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>Risk</th><th>Level</th><th>Timeline</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>National chain competition</strong></td>
+            <td class="risk-high">HIGH</td>
+            <td>3–7 years</td>
+            <td>Build institutional brand depth now. Land acquisition for campus expansion before expressway-driven land appreciation.</td>
+          </tr>
+          <tr>
+            <td><strong>Key teacher departure</strong></td>
+            <td class="risk-high">HIGH</td>
+            <td>Ongoing</td>
+            <td>Track single-teacher subjects (esp. Math/Science, Class 9–10). Teacher housing, above-market salary, CPD investment.</td>
+          </tr>
+          <tr>
+            <td><strong>Fee collection volatility</strong></td>
+            <td class="risk-med">MEDIUM</td>
+            <td>Ongoing</td>
+            <td>Monthly installment options, hardship scholarship fund, 3-month cash reserve maintained at all times.</td>
+          </tr>
+          <tr>
+            <td><strong>Coaching institute cannibalization</strong></td>
+            <td class="risk-med">MEDIUM</td>
+            <td>5–10 years</td>
+            <td>Integrate competitive exam prep (Olympiad, NTSE, foundation) into Grade 7–10 curriculum.</td>
+          </tr>
+          <tr>
+            <td><strong>Grade 5→6 churn</strong></td>
+            <td class="risk-med">MEDIUM</td>
+            <td>Ongoing</td>
+            <td>Monitor this cohort specifically. Strong Grade 6–8 program to retain upward-mobile families.</td>
+          </tr>
+          <tr>
+            <td><strong>Regulatory compliance lapse</strong></td>
+            <td class="risk-high">HIGH (if ignored)</td>
+            <td>Annual</td>
+            <td>Compliance Calendar dashboard. CBSE affiliation, fire safety, teacher qualification — all tracked with 90-day advance alerts.</td>
+          </tr>
+          <tr>
+            <td><strong>Brain drain (families relocating)</strong></td>
+            <td class="risk-low">LOW (structural)</td>
+            <td>Ongoing</td>
+            <td>Not a school failure — it's a UP structural pattern. Maximize fee realization through Grade 10; alumni become your brand ambassadors.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 20-YEAR ROADMAP -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">8</div>
+      <div class="section-title">20-Year Strategic Roadmap</div>
+    </div>
+    <div class="section-body">
+      <ul class="timeline">
+        <li class="timeline-item">
+          <div class="timeline-marker">
+            <div class="timeline-dot"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-year">2026–2028 · Foundation</div>
+            <ul class="timeline-items">
+              <li>Build financial transparency — implement this dashboard system</li>
+              <li>NEP 5+3+3+4 curriculum alignment (start with Foundational Stage)</li>
+              <li>Smart classroom installation — differentiate visibly from government schools</li>
+              <li>Land acquisition before Ganga Expressway appreciation makes it prohibitive</li>
+              <li>First CSR partnership — fund labs or library</li>
+              <li>Set 3-month cash reserve as a non-negotiable minimum</li>
+            </ul>
+          </div>
+        </li>
+        <li class="timeline-item">
+          <div class="timeline-marker">
+            <div class="timeline-dot"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-year">2028–2031 · Growth</div>
+            <ul class="timeline-items">
+              <li>Grade 10 board results consistently above district average — this becomes your marketing</li>
+              <li>Expand to capacity — trigger new section when utilization hits 85%</li>
+              <li>Launch Grade 11–12 (captures students who would otherwise leave; new revenue tier)</li>
+              <li>Teacher housing/retention program — become the employer of choice in the region</li>
+              <li>Nature education identity fully programmed into curriculum — outdoor science, astronomy, ecology</li>
+            </ul>
+          </div>
+        </li>
+        <li class="timeline-item">
+          <div class="timeline-marker">
+            <div class="timeline-dot"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-year">2031–2036 · Dominance</div>
+            <ul class="timeline-items">
+              <li>Recognized as the quality CBSE school in your 15km geography — not by default but by outcomes</li>
+              <li>Alumni network as brand evidence — where students go after Grade 10/12</li>
+              <li>Sports &amp; co-curricular infrastructure (incomes have risen; parents expect this)</li>
+              <li>International school partnership possible via Varanasi airport connectivity</li>
+              <li>Possible franchise opportunity — or anchor for a small school network</li>
+            </ul>
+          </div>
+        </li>
+        <li class="timeline-item">
+          <div class="timeline-marker">
+            <div class="timeline-dot" style="background:#4338CA; width:14px; height:14px; margin-top:0px"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-year">2036–2046 · Institution</div>
+            <ul class="timeline-items">
+              <li>20+ year track record = impossible to compete with on community trust</li>
+              <li>CSR partner of choice for corporations in the Varanasi corridor</li>
+              <li>Students who were taught how small we are in the universe — and how important our actions are on Earth</li>
+              <li>The founder's ikigai fully realized at institutional scale</li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- IMPLEMENTATION PHASING -->
+  <div class="section page-break">
+    <div class="section-header">
+      <div class="section-number">9</div>
+      <div class="section-title">Dashboard Implementation Phasing</div>
+    </div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>Phase</th><th>Timeline</th><th>What to Build</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Phase 1 — Foundation</strong></td>
+            <td>Month 1–2</td>
+            <td>Founder Pulse (10 KPIs) · Compliance Calendar · Fee Defaulter Tracker · Cash Reserve gauge</td>
+            <td style="color:#DC2626; font-weight:600">P0 — Do First</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 2 — Operations</strong></td>
+            <td>Month 3–4</td>
+            <td>Full Financial Dashboard · Attendance Heatmaps (student + teacher) · Enrollment Strength + Capacity</td>
+            <td style="color:#D97706; font-weight:600">P1 — Core Value</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 3 — Analytics</strong></td>
+            <td>Month 5–6</td>
+            <td>Academic Performance Dashboards · Enrollment Funnel with Source Tracking · Staff HR Metrics · Break-even Model</td>
+            <td style="color:#059669; font-weight:600">P2 — Strategic</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 4 — Strategic</strong></td>
+            <td>Month 7+</td>
+            <td>Capacity Planning Forecasts · Community Impact Metrics · NPS &amp; Brand Dashboard · CSR Pipeline Tracker</td>
+            <td style="color:#4338CA; font-weight:600">P3 — Growth</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Integration Note:</strong> All dashboards integrate into the existing <code>aurora-dashboard</code> project (React + Vite + TypeScript + Supabase + Vercel). Data flows: Simption ERP → aurora-scraper (scrape/export) → Supabase → aurora-dashboard views. The <code>aurora-expenses</code> project provides the financial layer. Owner maintenance burden: &lt;1 hr/month once set up.
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <div>Aurora OS · aurora-expenses · Strategic Analysis 2026</div>
+    <div>Akshararambh Public School, Varanasi · Confidential</div>
+    <div>Generated March 2026</div>
+  </div>
+
+</div>
+
+<script>
+  // Print button for browser
+  if (typeof window !== 'undefined') {
+    const btn = document.createElement('button');
+    btn.textContent = '⬇ Print / Save as PDF';
+    btn.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#4338CA;color:white;border:none;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(67,56,202,0.3);z-index:9999;font-family:DM Sans,sans-serif';
+    btn.onclick = () => window.print();
+    document.body.appendChild(btn);
+  }
+</script>
+</body>
+</html>
