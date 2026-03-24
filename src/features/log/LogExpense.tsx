@@ -228,7 +228,12 @@ function ConfirmScreen({
     c => c.name.toLowerCase() === (extracted.suggestedCategoryName ?? '').toLowerCase()
   )
 
-  const [amount,        setAmount]    = useState(String(extracted.amount ?? ''))
+  // Prefer line items sum over extracted total — more reliable when Claude miscounts
+  const lineItemsSum = extracted.lineItems?.length
+    ? extracted.lineItems.reduce((s, it) => s + it.amount, 0)
+    : null
+  const bestAmount = lineItemsSum ?? extracted.amount ?? ''
+  const [amount,        setAmount]    = useState(String(bestAmount))
   const [vendor,        setVendor]    = useState(extracted.vendor ?? '')
   const [date,          setDate]      = useState(extracted.date ?? todayISO())
   const [categoryId,    setCategoryId]= useState(guessedCat?.id ?? '')
