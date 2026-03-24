@@ -1,17 +1,17 @@
 import { useExpenses } from '../../hooks/useExpenses'
 import { useReceiptQueue, queueStats } from '../../hooks/useReceiptQueue'
+import { useMonthlyBudget } from '../../hooks/useSchoolSettings'
 import { ExpenseRow } from '../../components/ExpenseRow'
 import { formatINRCompact, currentMonth, monthLabel } from '../../lib/format'
 import { color, font } from '../../tokens'
 import type { ReceiptQueueItem } from '../../lib/types'
-
-const BUDGET = 340_000
 
 export function Dashboard({ onReviewQueueItem }: { onReviewQueueItem?: (item: ReceiptQueueItem) => void }) {
   const month = currentMonth()
   const { data: expenses = [], isLoading } = useExpenses({ month, limit: 60 })
   const { data: queueItems = [] } = useReceiptQueue()
   const { pending, readyCount, failedCount, doneItems, failedItems } = queueStats(queueItems)
+  const BUDGET = useMonthlyBudget()
 
   const totalSpent  = expenses.reduce((s, e) => s + e.amount, 0)
   const paidAmt     = expenses.filter(e => e.paymentStatus === 'paid').reduce((s, e) => s + e.amount, 0)
