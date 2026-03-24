@@ -58,6 +58,11 @@ export interface VendorSummary {
   lastTransaction: string
 }
 
+export interface LineItem {
+  description: string
+  amount: number
+}
+
 export interface ExtractedExpense {
   amount: number | null
   vendor: string | null
@@ -66,6 +71,7 @@ export interface ExtractedExpense {
   paymentMethod: PaymentMethod | null
   confidence: 'high' | 'medium' | 'low'
   rawText: string
+  lineItems?: LineItem[]
 }
 
 // Input to create an expense

@@ -6,7 +6,7 @@ import { useCategories } from '../../hooks/useCategories'
 import { useVendors } from '../../hooks/useVendors'
 import { todayISO, formatINR } from '../../lib/format'
 import { color, font } from '../../tokens'
-import type { ExtractedExpense, CreateExpenseInput, PaymentStatus, ExpenseCategory } from '../../lib/types'
+import type { ExtractedExpense, CreateExpenseInput, PaymentStatus, ExpenseCategory, LineItem } from '../../lib/types'
 
 // ── State machine ──────────────────────────────────────────────────────────────
 type State =
@@ -308,6 +308,42 @@ function ConfirmScreen({
             style={{ ...input, fontFamily: font.display, fontSize: 24, color: color.accent, fontWeight: 700 }}
           />
         </div>
+
+        {/* Line items breakdown */}
+        {extracted.lineItems && extracted.lineItems.length > 0 && (
+          <div style={{
+            background: color.parchment, border: `1px solid ${color.border}`,
+            borderRadius: 8, marginBottom: 8, overflow: 'hidden',
+          }}>
+            <div style={{ padding: '7px 12px', borderBottom: `1px solid ${color.border}` }}>
+              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase' as const, color: color.muted }}>
+                Breakdown
+              </span>
+            </div>
+            {extracted.lineItems.map((item: LineItem, i: number) => (
+              <div key={i} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '7px 12px',
+                borderBottom: i < extracted.lineItems!.length - 1 ? `1px solid ${color.border}` : 'none',
+              }}>
+                <span style={{ fontSize: 12, color: color.ink, flex: 1, paddingRight: 8 }}>{item.description}</span>
+                <span style={{ fontSize: 12, fontFamily: font.mono, fontWeight: 600, color: color.ink, whiteSpace: 'nowrap' as const }}>
+                  {formatINR(item.amount)}
+                </span>
+              </div>
+            ))}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '7px 12px', background: color.white,
+              borderTop: `1px solid ${color.border}`,
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: color.ink }}>Total</span>
+              <span style={{ fontSize: 13, fontFamily: font.mono, fontWeight: 700, color: color.accent }}>
+                {formatINR(extracted.lineItems.reduce((s, it) => s + it.amount, 0))}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Vendor — native datalist autocomplete from existing vendors */}
         <div style={field}>
