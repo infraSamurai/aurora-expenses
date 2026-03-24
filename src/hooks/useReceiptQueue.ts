@@ -4,6 +4,19 @@ import { supabase } from '../lib/supabase'
 import type { ReceiptQueueItem, ExtractedExpense } from '../lib/types'
 
 const MAX_ATTEMPTS = 3
+
+/** 4xx errors are client errors — retrying won't help. Only retry on 5xx/network failures. */
+function isRetryable(err: unknown): boolean {
+  if (err instanceof Error) {
+    // Supabase FunctionsHttpError includes status in message like "Edge Function returned a non-2xx status code"
+    // Check for explicit 4xx status codes
+    const msg = err.message.toLowerCase()
+    if (msg.includes('400') || msg.includes('413') || msg.includes('415') || msg.includes('422')) {
+      return false
+    }
+  }
+  return true
+}
 const QUEUE_KEY = ['receipt_queue'] as const
 
 // ── Row mapper ─────────────────────────────────────────────────────────────────
@@ -145,7 +158,8 @@ export function useQueueProcessor() {
           .eq('id', pending.id)
       } catch (err) {
         const nextAttempts = pending.attempts + 1
-        const exhausted = nextAttempts >= MAX_ATTEMPTS
+        // Don't retry 4xx errors (client errors) — mark failed immediately
+        const exhausted = nextAttempts >= MAX_ATTEMPTS || !isRetryable(err)
         await supabase
           .from('receipt_queue')
           .update({
