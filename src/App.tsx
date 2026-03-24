@@ -17,6 +17,10 @@ import { Projects } from './features/projects/Projects'
 import { Vendors } from './features/vendors/Vendors'
 import { Settings } from './features/settings/Settings'
 
+// Queue
+import { useQueueProcessor } from './hooks/useReceiptQueue'
+import type { ReceiptQueueItem } from './lib/types'
+
 export type Page =
   | 'dashboard'
   | 'expenses'
@@ -46,30 +50,48 @@ function useIsDesktop() {
   return desk
 }
 
-function PageContent({ page, setPage }: { page: Page; setPage: (p: Page) => void }) {
+function PageContent({
+  page, setPage, reviewQueueItem, setReviewQueueItem,
+}: {
+  page: Page
+  setPage: (p: Page) => void
+  reviewQueueItem: ReceiptQueueItem | undefined
+  setReviewQueueItem: (item: ReceiptQueueItem | undefined) => void
+}) {
+  const handleReview = (item: ReceiptQueueItem) => {
+    setReviewQueueItem(item)
+    setPage('log')
+  }
+  const handleLogBack = () => {
+    setReviewQueueItem(undefined)
+    setPage('dashboard')
+  }
+
   switch (page) {
-    case 'dashboard':   return <Dashboard />
-    case 'log':         return <LogExpense onBack={() => setPage('dashboard')} />
+    case 'dashboard':   return <Dashboard onReviewQueueItem={handleReview} />
+    case 'log':         return <LogExpense onBack={handleLogBack} reviewQueueItem={reviewQueueItem} />
     case 'expenses':    return <ExpenseList />
     case 'reports':     return <Reports />
     case 'projects':    return <Projects />
     case 'vendors':     return <Vendors />
-    // Category filtered views — pass type to ExpenseList so it pre-filters
     case 'operational': return <ExpenseList defaultType="operational" />
     case 'capital':     return <Projects />
     case 'recurring':   return <ExpenseList defaultType="recurring" />
     case 'settings':    return <Settings />
-    default:            return <Dashboard />
+    default:            return <Dashboard onReviewQueueItem={handleReview} />
   }
 }
 
 function AppShell() {
-  const [page, setPage]           = useState<Page>('dashboard')
-  const [showBell, setShowBell]   = useState(false)
-  const isDesktop                 = useIsDesktop()
+  const [page, setPage]                   = useState<Page>('dashboard')
+  const [showBell, setShowBell]           = useState(false)
+  const [reviewQueueItem, setReviewQueueItem] = useState<ReceiptQueueItem | undefined>()
+  const isDesktop                         = useIsDesktop()
+
+  // Background receipt extraction processor
+  useQueueProcessor()
 
   const handleExport = async () => {
-    // Simple CSV export of current month expenses — hooked to the sidebar action
     alert('Export CSV: coming soon — will download all expenses as CSV')
   }
 
@@ -83,7 +105,7 @@ function AppShell() {
           onExport={handleExport}
         />
         <main style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-          <PageContent page={page} setPage={setPage} />
+          <PageContent page={page} setPage={setPage} reviewQueueItem={reviewQueueItem} setReviewQueueItem={setReviewQueueItem} />
         </main>
         <NotificationPanel open={showBell} onClose={() => setShowBell(false)} />
       </div>
@@ -94,7 +116,7 @@ function AppShell() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100svh', background: color.parchment }}>
       <TopBar onBell={() => setShowBell(true)} />
       <main style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-        <PageContent page={page} setPage={setPage} />
+        <PageContent page={page} setPage={setPage} reviewQueueItem={reviewQueueItem} setReviewQueueItem={setReviewQueueItem} />
       </main>
       <MobileNav page={page} setPage={setPage} />
       <NotificationPanel open={showBell} onClose={() => setShowBell(false)} />

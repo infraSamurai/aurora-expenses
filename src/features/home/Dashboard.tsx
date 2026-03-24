@@ -1,13 +1,17 @@
 import { useExpenses } from '../../hooks/useExpenses'
+import { useReceiptQueue, queueStats } from '../../hooks/useReceiptQueue'
 import { ExpenseRow } from '../../components/ExpenseRow'
 import { formatINRCompact, currentMonth, monthLabel } from '../../lib/format'
 import { color, font } from '../../tokens'
+import type { ReceiptQueueItem } from '../../lib/types'
 
 const BUDGET = 340_000
 
-export function Dashboard() {
+export function Dashboard({ onReviewQueueItem }: { onReviewQueueItem?: (item: ReceiptQueueItem) => void }) {
   const month = currentMonth()
   const { data: expenses = [], isLoading } = useExpenses({ month, limit: 60 })
+  const { data: queueItems = [] } = useReceiptQueue()
+  const { pending, readyCount, failedCount, doneItems, failedItems } = queueStats(queueItems)
 
   const totalSpent  = expenses.reduce((s, e) => s + e.amount, 0)
   const paidAmt     = expenses.filter(e => e.paymentStatus === 'paid').reduce((s, e) => s + e.amount, 0)
@@ -93,6 +97,92 @@ export function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* Receipt Queue Status */}
+      {(pending > 0 || readyCount > 0 || failedCount > 0) && (
+        <div style={{ margin: '12px 16px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{
+            fontSize: 9, fontWeight: 600, letterSpacing: '0.14em',
+            textTransform: 'uppercase' as const, color: color.muted,
+          }}>
+            Receipt Queue
+          </div>
+
+          {/* Processing chip */}
+          {pending > 0 && (
+            <div style={{
+              background: color.accentLight, border: `1px solid ${color.accent}30`,
+              borderRadius: 10, padding: '10px 14px',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <div style={{
+                width: 14, height: 14, borderRadius: '50%',
+                border: `2px solid ${color.accent}`, borderTopColor: 'transparent',
+                animation: 'spin 0.8s linear infinite', flexShrink: 0,
+              }} />
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: color.accent }}>
+                  {pending} receipt{pending > 1 ? 's' : ''} extracting…
+                </div>
+                <div style={{ fontSize: 10, color: color.muted, marginTop: 1 }}>
+                  AI is reading your bills in the background
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Ready to review chips */}
+          {doneItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => onReviewQueueItem?.(item)}
+              style={{
+                background: color.successLight, border: `1px solid #A7F3D0`,
+                borderRadius: 10, padding: '10px 14px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 10, cursor: onReviewQueueItem ? 'pointer' : 'default',
+                fontFamily: font.body, width: '100%', textAlign: 'left' as const,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#065F46' }}>
+                  {item.extracted?.vendor ? `${item.extracted.vendor} — ready to confirm` : 'Receipt ready to confirm'}
+                </div>
+                <div style={{ fontSize: 10, color: '#065F46', opacity: 0.7, marginTop: 1 }}>
+                  {item.extracted?.amount ? `₹${Math.round(item.extracted.amount).toLocaleString('en-IN')}` : ''}{' '}
+                  {item.extracted?.date ?? ''}
+                </div>
+              </div>
+              <span style={{ fontSize: 13, color: '#065F46', fontWeight: 700 }}>→</span>
+            </button>
+          ))}
+
+          {/* Failed chips */}
+          {failedItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => onReviewQueueItem?.(item)}
+              style={{
+                background: '#FEF2F2', border: `1px solid #FECACA`,
+                borderRadius: 10, padding: '10px 14px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 10, cursor: onReviewQueueItem ? 'pointer' : 'default',
+                fontFamily: font.body, width: '100%', textAlign: 'left' as const,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#991B1B' }}>
+                  Extraction failed — enter details manually
+                </div>
+                <div style={{ fontSize: 10, color: '#991B1B', opacity: 0.7, marginTop: 1 }}>
+                  Receipt is saved. Tap to fill in manually.
+                </div>
+              </div>
+              <span style={{ fontSize: 13, color: '#991B1B', fontWeight: 700 }}>→</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Recent expenses */}
       <div style={{ padding: '12px 16px 0' }}>

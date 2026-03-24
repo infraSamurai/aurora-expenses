@@ -1,5 +1,17 @@
 // Expense domain types — matches Supabase schema exactly
 
+export type QueueStatus = 'pending' | 'processing' | 'done' | 'failed'
+
+export interface ReceiptQueueItem {
+  id: string
+  receiptUrl: string
+  status: QueueStatus
+  attempts: number
+  lastError?: string
+  extracted?: ExtractedExpense
+  createdAt: string
+}
+
 export type PaymentMethod  = 'cash' | 'upi' | 'bank_transfer' | 'cheque' | 'other'
 export type PaymentStatus  = 'pending' | 'billed' | 'paid'
 export type CategoryType   = 'operational' | 'capital' | 'recurring'
