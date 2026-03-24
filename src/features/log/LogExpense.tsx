@@ -497,25 +497,26 @@ export function LogExpense({ onBack }: Props) {
   const createExpense = useCreateExpense()
 
   const handleCapture = async (file: File) => {
-    // Validate before uploading — client-side accept="image/*" is bypassable
-    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
     const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
-    if (!ALLOWED.includes(file.type)) {
-      setState({ phase: 'error', message: 'Only JPEG, PNG, WebP, or HEIC images are supported.' })
-      return
-    }
     if (file.size > MAX_BYTES) {
       setState({ phase: 'error', message: 'Image must be under 10 MB.' })
       return
     }
 
+    // Android often returns empty file.type — infer from extension
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+    const EXT_MIME: Record<string, string> = {
+      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+      webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
+    }
+    const contentType = file.type || EXT_MIME[ext] || 'image/jpeg'
+
     setState({ phase: 'processing' })
-    const ext  = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
     const path = `receipts/${Date.now()}.${ext}`
 
     try {
       // Upload to Supabase Storage
-      const { error: upErr } = await supabase.storage.from('receipts').upload(path, file, { contentType: file.type })
+      const { error: upErr } = await supabase.storage.from('receipts').upload(path, file, { contentType })
       if (upErr) throw upErr
 
       const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(path)
