@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ChevronLeft, Camera, Image, CheckCircle2, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useCreateExpense } from '../../hooks/useExpenses'
@@ -228,18 +228,24 @@ function ConfirmScreen({
     c => c.name.toLowerCase() === (extracted.suggestedCategoryName ?? '').toLowerCase()
   )
 
-  // Prefer line items sum over extracted total — more reliable when Claude miscounts
-  const lineItemsSum = extracted.lineItems?.length
-    ? extracted.lineItems.reduce((s, it) => s + it.amount, 0)
-    : null
-  const bestAmount = lineItemsSum ?? extracted.amount ?? ''
-  const [amount,        setAmount]    = useState(String(bestAmount))
+  const [items, setItems] = useState<LineItem[]>(extracted.lineItems ?? [])
+
+  const initialAmount = extracted.lineItems?.length
+    ? String(extracted.lineItems.reduce((s, it) => s + it.amount, 0))
+    : String(extracted.amount ?? '')
+  const [amount,        setAmount]    = useState(initialAmount)
   const [vendor,        setVendor]    = useState(extracted.vendor ?? '')
   const [date,          setDate]      = useState(extracted.date ?? todayISO())
   const [categoryId,    setCategoryId]= useState(guessedCat?.id ?? '')
   const [paymentMethod, setPayMethod] = useState(extracted.paymentMethod ?? 'cash')
   const [paymentStatus, setPayStatus] = useState<PaymentStatus>('paid')
   const [notes,         setNotes]     = useState('')
+
+  useEffect(() => {
+    if (items.length > 0) {
+      setAmount(String(items.reduce((s, it) => s + it.amount, 0)))
+    }
+  }, [items])
 
   const handleSave = () => {
     const parsed = parseFloat(amount)
@@ -307,36 +313,105 @@ function ConfirmScreen({
 
         {/* Amount */}
         <div style={field}>
-          <label style={label}>Amount (₹)</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+            <label style={{ ...label, marginBottom: 0 }}>Amount (₹)</label>
+            {items.length > 0 && (
+              <span style={{
+                fontSize: 8, fontWeight: 700, letterSpacing: '0.08em',
+                background: color.accentLight, color: color.accent,
+                padding: '1px 5px', borderRadius: 3,
+              }}>AUTO</span>
+            )}
+          </div>
           <input
-            value={amount} onChange={e => setAmount(e.target.value)} inputMode="decimal"
-            style={{ ...input, fontFamily: font.display, fontSize: 24, color: color.accent, fontWeight: 700 }}
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+            inputMode="decimal"
+            readOnly={items.length > 0}
+            style={{
+              ...input, fontFamily: font.display, fontSize: 24, color: color.accent, fontWeight: 700,
+              ...(items.length > 0 ? { opacity: 0.75, cursor: 'default' } : {}),
+            }}
           />
         </div>
 
-        {/* Line items breakdown */}
-        {extracted.lineItems && extracted.lineItems.length > 0 && (
-          <div style={{
-            background: color.parchment, border: `1px solid ${color.border}`,
-            borderRadius: 8, marginBottom: 8, overflow: 'hidden',
-          }}>
-            <div style={{ padding: '7px 12px', borderBottom: `1px solid ${color.border}` }}>
-              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase' as const, color: color.muted }}>
-                Breakdown
-              </span>
+        {/* Line items breakdown — editable */}
+        <div style={{
+          background: color.parchment, border: `1px solid ${color.border}`,
+          borderRadius: 8, marginBottom: 8, overflow: 'hidden',
+        }}>
+          <div style={{ padding: '7px 12px', borderBottom: `1px solid ${color.border}` }}>
+            <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase' as const, color: color.muted }}>
+              Breakdown
+            </span>
+          </div>
+
+          {items.map((item, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 10px 6px 12px',
+              borderBottom: `1px solid ${color.border}`,
+            }}>
+              <input
+                value={item.description}
+                onChange={e => {
+                  const desc = e.target.value
+                  setItems(prev => prev.map((it, idx) => idx === i ? { ...it, description: desc } : it))
+                }}
+                placeholder="Item description"
+                style={{
+                  ...input, flex: 1,
+                  background: 'none', border: 'none', outline: 'none',
+                  fontSize: 12, padding: '2px 0',
+                }}
+              />
+              <input
+                type="number"
+                value={item.amount === 0 ? '' : item.amount}
+                onChange={e => {
+                  const val = parseFloat(e.target.value) || 0
+                  setItems(prev => prev.map((it, idx) => idx === i ? { ...it, amount: val } : it))
+                }}
+                placeholder="0"
+                inputMode="decimal"
+                style={{
+                  ...input, width: 70, textAlign: 'right' as const,
+                  fontFamily: font.mono, fontWeight: 600, fontSize: 12,
+                  background: 'none', border: 'none', outline: 'none',
+                  padding: '2px 0', flexShrink: 0,
+                }}
+              />
+              <button
+                onClick={() => setItems(prev => prev.filter((_, idx) => idx !== i))}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: color.faint, fontSize: 14, fontWeight: 600,
+                  padding: '2px 4px', lineHeight: 1, flexShrink: 0,
+                  fontFamily: font.body,
+                }}
+                aria-label="Remove item"
+              >
+                ×
+              </button>
             </div>
-            {extracted.lineItems.map((item: LineItem, i: number) => (
-              <div key={i} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '7px 12px',
-                borderBottom: i < extracted.lineItems!.length - 1 ? `1px solid ${color.border}` : 'none',
-              }}>
-                <span style={{ fontSize: 12, color: color.ink, flex: 1, paddingRight: 8 }}>{item.description}</span>
-                <span style={{ fontSize: 12, fontFamily: font.mono, fontWeight: 600, color: color.ink, whiteSpace: 'nowrap' as const }}>
-                  {formatINR(item.amount)}
-                </span>
-              </div>
-            ))}
+          ))}
+
+          {/* Add item row */}
+          <div style={{ padding: '6px 12px', borderBottom: items.length > 0 ? `1px solid ${color.border}` : 'none' }}>
+            <button
+              onClick={() => setItems(prev => [...prev, { description: '', amount: 0 }])}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: color.muted, fontSize: 11, fontFamily: font.body,
+                padding: '2px 0', display: 'flex', alignItems: 'center', gap: 4,
+              }}
+            >
+              <span style={{ fontSize: 14, fontWeight: 700, lineHeight: 1 }}>+</span> Add item
+            </button>
+          </div>
+
+          {/* Total row */}
+          {items.length > 0 && (
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               padding: '7px 12px', background: color.white,
@@ -344,11 +419,11 @@ function ConfirmScreen({
             }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: color.ink }}>Total</span>
               <span style={{ fontSize: 13, fontFamily: font.mono, fontWeight: 700, color: color.accent }}>
-                {formatINR(extracted.lineItems.reduce((s, it) => s + it.amount, 0))}
+                {formatINR(items.reduce((s, it) => s + it.amount, 0))}
               </span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Vendor — native datalist autocomplete from existing vendors */}
         <div style={field}>
