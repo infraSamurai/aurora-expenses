@@ -558,11 +558,17 @@ export function LogExpense({ onBack }: Props) {
       const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(path)
       const receiptUrl = urlData.publicUrl
 
-      // Call edge function — if it fails, clean up the orphaned file
+      // Call edge function with 1 retry — cold starts can cause the first attempt to fail
       let res
       try {
-        res = await supabase.functions.invoke('extract-receipt', { body: { imageUrl: receiptUrl } })
-        if (res.error) throw res.error
+        const invoke = () => supabase.functions.invoke('extract-receipt', { body: { imageUrl: receiptUrl } })
+        res = await invoke()
+        if (res.error) {
+          // Wait 1.5s and retry once (cold start recovery)
+          await new Promise(r => setTimeout(r, 1500))
+          res = await invoke()
+          if (res.error) throw res.error
+        }
       } catch (extractErr) {
         await supabase.storage.from('receipts').remove([path]).catch(() => {/* best-effort cleanup */})
         throw extractErr
