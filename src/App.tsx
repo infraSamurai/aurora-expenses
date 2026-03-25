@@ -21,10 +21,14 @@ import { Settings } from './features/settings/Settings'
 import { useQueueProcessor } from './hooks/useReceiptQueue'
 import type { ReceiptQueueItem } from './lib/types'
 
+// Batch review
+import { BatchReview } from './features/log/BatchReview'
+
 export type Page =
   | 'dashboard'
   | 'expenses'
   | 'log'
+  | 'batch'
   | 'reports'
   | 'projects'
   | 'vendors'
@@ -51,12 +55,14 @@ function useIsDesktop() {
 }
 
 function PageContent({
-  page, setPage, reviewQueueItem, setReviewQueueItem,
+  page, setPage, reviewQueueItem, setReviewQueueItem, batchIds, setBatchIds,
 }: {
   page: Page
   setPage: (p: Page) => void
   reviewQueueItem: ReceiptQueueItem | undefined
   setReviewQueueItem: (item: ReceiptQueueItem | undefined) => void
+  batchIds: string[]
+  setBatchIds: (ids: string[]) => void
 }) {
   const handleReview = (item: ReceiptQueueItem) => {
     setReviewQueueItem(item)
@@ -66,10 +72,24 @@ function PageContent({
     setReviewQueueItem(undefined)
     setPage('dashboard')
   }
+  const handleBatchReady = (ids: string[]) => {
+    setBatchIds(ids)
+    setPage('batch')
+  }
+
+  if (page === 'batch') {
+    return (
+      <BatchReview
+        queueItemIds={batchIds}
+        onDone={() => { setBatchIds([]); setPage('dashboard') }}
+        onBack={() => { setBatchIds([]); setPage('dashboard') }}
+      />
+    )
+  }
 
   switch (page) {
     case 'dashboard':   return <Dashboard onReviewQueueItem={handleReview} />
-    case 'log':         return <LogExpense onBack={handleLogBack} reviewQueueItem={reviewQueueItem} />
+    case 'log':         return <LogExpense onBack={handleLogBack} reviewQueueItem={reviewQueueItem} onBatchReady={handleBatchReady} />
     case 'expenses':    return <ExpenseList />
     case 'reports':     return <Reports />
     case 'projects':    return <Projects />
@@ -83,10 +103,11 @@ function PageContent({
 }
 
 function AppShell() {
-  const [page, setPage]                   = useState<Page>('dashboard')
-  const [showBell, setShowBell]           = useState(false)
+  const [page, setPage]                       = useState<Page>('dashboard')
+  const [showBell, setShowBell]               = useState(false)
   const [reviewQueueItem, setReviewQueueItem] = useState<ReceiptQueueItem | undefined>()
-  const isDesktop                         = useIsDesktop()
+  const [batchIds, setBatchIds]               = useState<string[]>([])
+  const isDesktop                             = useIsDesktop()
 
   // Background receipt extraction processor
   useQueueProcessor()
@@ -105,7 +126,7 @@ function AppShell() {
           onExport={handleExport}
         />
         <main style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-          <PageContent page={page} setPage={setPage} reviewQueueItem={reviewQueueItem} setReviewQueueItem={setReviewQueueItem} />
+          <PageContent page={page} setPage={setPage} reviewQueueItem={reviewQueueItem} setReviewQueueItem={setReviewQueueItem} batchIds={batchIds} setBatchIds={setBatchIds} />
         </main>
         <NotificationPanel open={showBell} onClose={() => setShowBell(false)} />
       </div>
@@ -116,7 +137,7 @@ function AppShell() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100svh', background: color.parchment }}>
       <TopBar onBell={() => setShowBell(true)} />
       <main style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-        <PageContent page={page} setPage={setPage} reviewQueueItem={reviewQueueItem} setReviewQueueItem={setReviewQueueItem} />
+        <PageContent page={page} setPage={setPage} reviewQueueItem={reviewQueueItem} setReviewQueueItem={setReviewQueueItem} batchIds={batchIds} setBatchIds={setBatchIds} />
       </main>
       <MobileNav page={page} setPage={setPage} />
       <NotificationPanel open={showBell} onClose={() => setShowBell(false)} />

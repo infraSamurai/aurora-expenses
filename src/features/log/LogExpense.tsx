@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useCreateExpense } from '../../hooks/useExpenses'
 import { useCategories } from '../../hooks/useCategories'
 import { useVendors } from '../../hooks/useVendors'
-import { useEnqueueReceipt, useMarkQueueItemDone, useDeleteQueueItem } from '../../hooks/useReceiptQueue'
+import { useEnqueueReceipt, useBatchEnqueue, useMarkQueueItemDone, useDeleteQueueItem } from '../../hooks/useReceiptQueue'
 import { todayISO, formatINR } from '../../lib/format'
 import { color, font } from '../../tokens'
 import type { ExtractedExpense, CreateExpenseInput, PaymentStatus, ExpenseCategory, LineItem, ReceiptQueueItem } from '../../lib/types'
@@ -23,22 +23,26 @@ interface Props {
   onBack: () => void
   /** When set, skip capture and go straight to confirm using a queue item (review-later flow). */
   reviewQueueItem?: ReceiptQueueItem
+  /** Called with queue item IDs after a batch upload — triggers BatchReview navigation. */
+  onBatchReady?: (ids: string[]) => void
 }
 
 // ── Capture Screen ─────────────────────────────────────────────────────────────
 function CaptureScreen({
-  onCapture,
+  onFiles,
   onManual,
 }: {
-  onCapture: (file: File) => void
+  onFiles: (files: File[]) => void
   onManual: () => void
 }) {
   const cameraRef  = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) onCapture(file)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (files.length) onFiles(files)
+    // Reset so same file can be re-selected
+    e.target.value = ''
   }
 
   return (
@@ -51,23 +55,18 @@ function CaptureScreen({
           position: 'relative', overflow: 'hidden', minHeight: 240,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          {/* Corner brackets */}
           {[
             { top: 10, left: 10, borderTop: '2px solid', borderLeft: '2px solid' },
             { top: 10, right: 10, borderTop: '2px solid', borderRight: '2px solid' },
             { bottom: 10, left: 10, borderBottom: '2px solid', borderLeft: '2px solid' },
             { bottom: 10, right: 10, borderBottom: '2px solid', borderRight: '2px solid' },
           ].map((s, i) => (
-            <div key={i} style={{
-              position: 'absolute', width: 20, height: 20,
-              borderColor: color.accent, ...s,
-            }} />
+            <div key={i} style={{ position: 'absolute', width: 20, height: 20, borderColor: color.accent, ...s }} />
           ))}
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', letterSpacing: '0.06em', textAlign: 'center' }}>
             Point at receipt or bill
           </p>
         </div>
-
         <div style={{ textAlign: 'center', marginTop: 14 }}>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', letterSpacing: '0.06em' }}>
             RECEIPT CAPTURE
@@ -77,6 +76,7 @@ function CaptureScreen({
 
       {/* Actions */}
       <div style={{ padding: '0 16px 32px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* Camera — single shot */}
         <button
           onClick={() => cameraRef.current?.click()}
           style={{
@@ -90,6 +90,7 @@ function CaptureScreen({
           Open Camera
         </button>
 
+        {/* Gallery — supports multi-select */}
         <button
           onClick={() => galleryRef.current?.click()}
           style={{
@@ -121,13 +122,15 @@ function CaptureScreen({
         }}>
           <CheckCircle2 size={16} color="rgba(255,255,255,0.3)" />
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', lineHeight: 1.45, margin: 0 }}>
-            AI extracts vendor, amount, and date automatically
+            Select multiple photos from gallery to log several receipts at once
           </p>
         </div>
       </div>
 
-      <input ref={cameraRef}  type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
-      <input ref={galleryRef} type="file" accept="image/*"                       onChange={handleFile} style={{ display: 'none' }} />
+      {/* Camera: single capture only */}
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleChange} style={{ display: 'none' }} />
+      {/* Gallery: multiple allowed */}
+      <input ref={galleryRef} type="file" accept="image/*" multiple onChange={handleChange} style={{ display: 'none' }} />
     </div>
   )
 }
@@ -672,9 +675,10 @@ function QueuedScreen({ onBack }: { onBack: () => void }) {
 }
 
 // ── Main LogExpense ────────────────────────────────────────────────────────────
-export function LogExpense({ onBack, reviewQueueItem }: Props) {
+export function LogExpense({ onBack, reviewQueueItem, onBatchReady }: Props) {
   const createExpense   = useCreateExpense()
   const enqueue         = useEnqueueReceipt()
+  const batchEnqueue    = useBatchEnqueue()
   const markDone        = useMarkQueueItemDone()
   const deleteQueueItem = useDeleteQueueItem()
 
@@ -685,49 +689,67 @@ export function LogExpense({ onBack, reviewQueueItem }: Props) {
       : { phase: 'capture' }
   )
 
-  const handleCapture = async (file: File) => {
+  const EXT_MIME: Record<string, string> = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+    webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
+  }
+
+  const prepareFile = (file: File) => {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+    const contentType = file.type || EXT_MIME[ext] || 'image/jpeg'
+    return { file, contentType, ext }
+  }
+
+  /** Multi-file handler — 2+ files go directly to BatchReview. */
+  const handleFiles = async (files: File[]) => {
     const MAX_BYTES = 10 * 1024 * 1024
-    if (file.size > MAX_BYTES) {
-      setState({ phase: 'error', message: 'Image must be under 10 MB.' })
+    const oversized = files.find(f => f.size > MAX_BYTES)
+    if (oversized) {
+      setState({ phase: 'error', message: `"${oversized.name}" is over 10 MB.` })
       return
     }
 
-    // Android returns empty file.type — infer from extension
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-    const EXT_MIME: Record<string, string> = {
-      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-      webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
+    if (files.length > 1) {
+      setState({ phase: 'uploading' })
+      try {
+        const ids = await batchEnqueue.mutateAsync(files.map(prepareFile))
+        onBatchReady?.(ids)
+      } catch (err) {
+        setState({ phase: 'error', message: err instanceof Error ? err.message : 'Upload failed' })
+      }
+      return
     }
-    const contentType = file.type || EXT_MIME[ext] || 'image/jpeg'
+
+    // Single file — existing fast-path (inline extraction → confirm screen)
+    handleCapture(files[0])
+  }
+
+  const handleCapture = async (file: File) => {
+    const { contentType, ext } = prepareFile(file)
 
     setState({ phase: 'uploading' })
 
     try {
-      // Step 1 — upload + enqueue (receipt is safe the moment this returns)
+      // Upload + enqueue — receipt is safe the moment this returns
       const { queueItemId, receiptUrl } = await enqueue.mutateAsync({ file, contentType, ext })
 
-      // Step 2 — attempt inline extraction (22s timeout; if it fails, queue retries in background)
+      // Attempt inline extraction with 22s timeout; if slow → queue retries in background
       setState({ phase: 'processing' })
-
-      const EXTRACTION_TIMEOUT_MS = 22_000
-      let extracted: ExtractedExpense | null = null
 
       try {
         const result = await Promise.race([
           supabase.functions.invoke('extract-receipt', { body: { imageUrl: receiptUrl } }),
           new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('timeout')), EXTRACTION_TIMEOUT_MS)
+            setTimeout(() => reject(new Error('timeout')), 22_000)
           ),
         ])
 
         if (result.error) throw result.error
-        extracted = result.data as ExtractedExpense
+        const extracted = result.data as ExtractedExpense
 
-        // Mark queue item done so background processor doesn't re-extract
         await markDone.mutateAsync({ id: queueItemId, extracted })
         setState({ phase: 'confirm', extracted, receiptUrl, queueItemId })
       } catch {
-        // Extraction failed / timed out — navigate home, queue handles retry
         setState({ phase: 'queued' })
       }
     } catch (err) {
@@ -783,7 +805,7 @@ export function LogExpense({ onBack, reviewQueueItem }: Props) {
       {/* Phase content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {state.phase === 'capture' && (
-          <CaptureScreen onCapture={handleCapture} onManual={handleManual} />
+          <CaptureScreen onFiles={handleFiles} onManual={handleManual} />
         )}
 
         {(state.phase === 'uploading' || state.phase === 'processing') && (

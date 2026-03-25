@@ -89,6 +89,38 @@ export function useEnqueueReceipt() {
   })
 }
 
+/** Upload multiple files in parallel and enqueue all for extraction. */
+export function useBatchEnqueue() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (
+      files: { file: File; contentType: string; ext: string }[]
+    ): Promise<string[]> => {
+      const results = await Promise.all(
+        files.map(async ({ file, contentType, ext }) => {
+          const path = `receipts/${crypto.randomUUID()}.${ext}`
+          const { error: upErr } = await supabase.storage
+            .from('receipts')
+            .upload(path, file, { contentType })
+          if (upErr) throw upErr
+
+          const receiptUrl = supabase.storage.from('receipts').getPublicUrl(path).data.publicUrl
+
+          const { data, error } = await supabase
+            .from('receipt_queue')
+            .insert({ receipt_url: receiptUrl })
+            .select()
+            .single()
+          if (error) throw new Error(error.message)
+          return (data as Record<string, unknown>).id as string
+        })
+      )
+      return results
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUEUE_KEY }),
+  })
+}
+
 /** Mark a queue item done (called from LogExpense fast-path after inline extraction). */
 export function useMarkQueueItemDone() {
   const qc = useQueryClient()
