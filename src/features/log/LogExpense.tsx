@@ -4,36 +4,45 @@ import { supabase } from '../../lib/supabase'
 import { useCreateExpense } from '../../hooks/useExpenses'
 import { useCategories } from '../../hooks/useCategories'
 import { useVendors } from '../../hooks/useVendors'
+import { useEnqueueReceipt, useBatchEnqueue, useMarkQueueItemDone, useDeleteQueueItem } from '../../hooks/useReceiptQueue'
 import { todayISO, formatINR } from '../../lib/format'
 import { color, font } from '../../tokens'
-import type { ExtractedExpense, CreateExpenseInput, PaymentStatus, ExpenseCategory, LineItem } from '../../lib/types'
+import type { ExtractedExpense, CreateExpenseInput, PaymentStatus, ExpenseCategory, LineItem, ReceiptQueueItem } from '../../lib/types'
 
 // ── State machine ──────────────────────────────────────────────────────────────
 type State =
   | { phase: 'capture' }
-  | { phase: 'processing' }
-  | { phase: 'confirm'; extracted: ExtractedExpense; receiptUrl: string }
+  | { phase: 'uploading' }               // brief — file going to storage
+  | { phase: 'processing' }              // extraction in progress (fast path)
+  | { phase: 'queued' }                  // extraction timed out — queued for background retry
+  | { phase: 'confirm'; extracted: ExtractedExpense; receiptUrl: string; queueItemId: string }
   | { phase: 'done'; expense: { amount: number; vendor?: string; date: string } }
   | { phase: 'error'; message: string }
 
 interface Props {
   onBack: () => void
+  /** When set, skip capture and go straight to confirm using a queue item (review-later flow). */
+  reviewQueueItem?: ReceiptQueueItem
+  /** Called with queue item IDs after a batch upload — triggers BatchReview navigation. */
+  onBatchReady?: (ids: string[]) => void
 }
 
 // ── Capture Screen ─────────────────────────────────────────────────────────────
 function CaptureScreen({
-  onCapture,
+  onFiles,
   onManual,
 }: {
-  onCapture: (file: File) => void
+  onFiles: (files: File[]) => void
   onManual: () => void
 }) {
   const cameraRef  = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) onCapture(file)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (files.length) onFiles(files)
+    // Reset so same file can be re-selected
+    e.target.value = ''
   }
 
   return (
@@ -46,23 +55,18 @@ function CaptureScreen({
           position: 'relative', overflow: 'hidden', minHeight: 240,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          {/* Corner brackets */}
           {[
             { top: 10, left: 10, borderTop: '2px solid', borderLeft: '2px solid' },
             { top: 10, right: 10, borderTop: '2px solid', borderRight: '2px solid' },
             { bottom: 10, left: 10, borderBottom: '2px solid', borderLeft: '2px solid' },
             { bottom: 10, right: 10, borderBottom: '2px solid', borderRight: '2px solid' },
           ].map((s, i) => (
-            <div key={i} style={{
-              position: 'absolute', width: 20, height: 20,
-              borderColor: color.accent, ...s,
-            }} />
+            <div key={i} style={{ position: 'absolute', width: 20, height: 20, borderColor: color.accent, ...s }} />
           ))}
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', letterSpacing: '0.06em', textAlign: 'center' }}>
             Point at receipt or bill
           </p>
         </div>
-
         <div style={{ textAlign: 'center', marginTop: 14 }}>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', letterSpacing: '0.06em' }}>
             RECEIPT CAPTURE
@@ -72,6 +76,7 @@ function CaptureScreen({
 
       {/* Actions */}
       <div style={{ padding: '0 16px 32px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* Camera — single shot */}
         <button
           onClick={() => cameraRef.current?.click()}
           style={{
@@ -85,6 +90,7 @@ function CaptureScreen({
           Open Camera
         </button>
 
+        {/* Gallery — supports multi-select */}
         <button
           onClick={() => galleryRef.current?.click()}
           style={{
@@ -116,13 +122,15 @@ function CaptureScreen({
         }}>
           <CheckCircle2 size={16} color="rgba(255,255,255,0.3)" />
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', lineHeight: 1.45, margin: 0 }}>
-            AI extracts vendor, amount, and date automatically
+            Select multiple photos from gallery to log several receipts at once
           </p>
         </div>
       </div>
 
-      <input ref={cameraRef}  type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
-      <input ref={galleryRef} type="file" accept="image/*"                       onChange={handleFile} style={{ display: 'none' }} />
+      {/* Camera: single capture only */}
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleChange} style={{ display: 'none' }} />
+      {/* Gallery: multiple allowed */}
+      <input ref={galleryRef} type="file" accept="image/*" multiple onChange={handleChange} style={{ display: 'none' }} />
     </div>
   )
 }
@@ -211,13 +219,15 @@ function CategoryPicker({
 function ConfirmScreen({
   extracted,
   receiptUrl,
+  queueItemId,
   onSave,
   onCancel,
   saving,
 }: {
   extracted: ExtractedExpense
   receiptUrl: string
-  onSave: (input: CreateExpenseInput) => void
+  queueItemId: string
+  onSave: (input: CreateExpenseInput & { queueItemId?: string }) => void
   onCancel: () => void
   saving: boolean
 }) {
@@ -250,7 +260,7 @@ function ConfirmScreen({
   const handleSave = () => {
     const parsed = parseFloat(amount)
     if (isNaN(parsed) || parsed <= 0) return
-    if (!date) return   // guard against empty date
+    if (!date) return
     onSave({
       amount:        parsed,
       vendor:        vendor.trim() || undefined,
@@ -261,6 +271,7 @@ function ConfirmScreen({
       receiptUrl:    receiptUrl || undefined,
       aiExtracted:   !!receiptUrl,
       notes:         notes.trim() || undefined,
+      queueItemId:   queueItemId || undefined,
     })
   }
 
@@ -607,62 +618,152 @@ function SuccessScreen({
 }
 
 
-// ── Main LogExpense ────────────────────────────────────────────────────────────
-export function LogExpense({ onBack }: Props) {
-  const [state, setState] = useState<State>({ phase: 'capture' })
-  const createExpense = useCreateExpense()
+// ── Queued Screen ──────────────────────────────────────────────────────────────
+function QueuedScreen({ onBack }: { onBack: () => void }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      padding: '80px 24px 24px', gap: 20, fontFamily: font.body,
+      background: color.parchment, height: '100%',
+    }}>
+      <div style={{
+        width: 72, height: 72, borderRadius: '50%',
+        border: `2.5px solid ${color.accent}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: color.accentLight,
+      }}>
+        <span style={{ fontSize: 32 }}>📥</span>
+      </div>
 
-  const handleCapture = async (file: File) => {
-    const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
-    if (file.size > MAX_BYTES) {
-      setState({ phase: 'error', message: 'Image must be under 10 MB.' })
+      <div style={{ fontFamily: font.display, fontSize: 22, fontWeight: 600, color: color.ink, textAlign: 'center' }}>
+        Receipt Saved
+      </div>
+      <div style={{ fontSize: 13, color: color.muted, textAlign: 'center', lineHeight: 1.6, maxWidth: 260 }}>
+        AI extraction is running in the background.
+        We'll have the details ready when you open the app next time.
+      </div>
+
+      <div style={{
+        width: '100%', background: color.white,
+        border: `1px solid ${color.border}`, borderRadius: 12,
+        padding: '14px 18px',
+      }}>
+        {[
+          '✅ Receipt uploaded and saved',
+          '⏳ AI extraction in progress',
+          '📋 Review details before saving',
+        ].map((step, i) => (
+          <div key={i} style={{
+            display: 'flex', gap: 10, alignItems: 'flex-start',
+            padding: '6px 0',
+            borderBottom: i < 2 ? `1px solid ${color.border}` : 'none',
+          }}>
+            <span style={{ fontSize: 12, color: i === 1 ? color.muted : color.ink }}>{step}</span>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={onBack} style={{
+        width: '100%', padding: '13px', background: color.ink, border: 'none', borderRadius: 10,
+        fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.9)',
+        fontFamily: font.body, cursor: 'pointer',
+      }}>
+        Back to Home
+      </button>
+    </div>
+  )
+}
+
+// ── Main LogExpense ────────────────────────────────────────────────────────────
+export function LogExpense({ onBack, reviewQueueItem, onBatchReady }: Props) {
+  const createExpense   = useCreateExpense()
+  const enqueue         = useEnqueueReceipt()
+  const batchEnqueue    = useBatchEnqueue()
+  const markDone        = useMarkQueueItemDone()
+  const deleteQueueItem = useDeleteQueueItem()
+
+  // If opened for review, jump straight to confirm
+  const [state, setState] = useState<State>(() =>
+    reviewQueueItem?.extracted
+      ? { phase: 'confirm', extracted: reviewQueueItem.extracted, receiptUrl: reviewQueueItem.receiptUrl, queueItemId: reviewQueueItem.id }
+      : { phase: 'capture' }
+  )
+
+  const EXT_MIME: Record<string, string> = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+    webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
+  }
+
+  const prepareFile = (file: File) => {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+    const contentType = file.type || EXT_MIME[ext] || 'image/jpeg'
+    return { file, contentType, ext }
+  }
+
+  /** Multi-file handler — 2+ files go directly to BatchReview. */
+  const handleFiles = async (files: File[]) => {
+    const MAX_BYTES = 10 * 1024 * 1024
+    const oversized = files.find(f => f.size > MAX_BYTES)
+    if (oversized) {
+      setState({ phase: 'error', message: `"${oversized.name}" is over 10 MB.` })
       return
     }
 
-    // Android often returns empty file.type — infer from extension
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-    const EXT_MIME: Record<string, string> = {
-      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-      webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
+    if (files.length > 1) {
+      setState({ phase: 'uploading' })
+      try {
+        const ids = await batchEnqueue.mutateAsync(files.map(prepareFile))
+        onBatchReady?.(ids)
+      } catch (err) {
+        setState({ phase: 'error', message: err instanceof Error ? err.message : 'Upload failed' })
+      }
+      return
     }
-    const contentType = file.type || EXT_MIME[ext] || 'image/jpeg'
 
-    setState({ phase: 'processing' })
-    const path = `receipts/${Date.now()}.${ext}`
+    // Single file — existing fast-path (inline extraction → confirm screen)
+    handleCapture(files[0])
+  }
+
+  const handleCapture = async (file: File) => {
+    const { contentType, ext } = prepareFile(file)
+
+    setState({ phase: 'uploading' })
 
     try {
-      // Upload to Supabase Storage
-      const { error: upErr } = await supabase.storage.from('receipts').upload(path, file, { contentType })
-      if (upErr) throw upErr
+      // Upload + enqueue — receipt is safe the moment this returns
+      const { queueItemId, receiptUrl } = await enqueue.mutateAsync({ file, contentType, ext })
 
-      const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(path)
-      const receiptUrl = urlData.publicUrl
+      // Attempt inline extraction with 22s timeout; if slow → queue retries in background
+      setState({ phase: 'processing' })
 
-      // Call edge function with 1 retry — cold starts can cause the first attempt to fail
-      let res
       try {
-        const invoke = () => supabase.functions.invoke('extract-receipt', { body: { imageUrl: receiptUrl } })
-        res = await invoke()
-        if (res.error) {
-          // Wait 1.5s and retry once (cold start recovery)
-          await new Promise(r => setTimeout(r, 1500))
-          res = await invoke()
-          if (res.error) throw res.error
-        }
-      } catch (extractErr) {
-        await supabase.storage.from('receipts').remove([path]).catch(() => {/* best-effort cleanup */})
-        throw extractErr
-      }
+        const result = await Promise.race([
+          supabase.functions.invoke('extract-receipt', { body: { imageUrl: receiptUrl } }),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), 22_000)
+          ),
+        ])
 
-      setState({ phase: 'confirm', extracted: res.data as ExtractedExpense, receiptUrl })
+        if (result.error) throw result.error
+        const extracted = result.data as ExtractedExpense
+
+        await markDone.mutateAsync({ id: queueItemId, extracted })
+        setState({ phase: 'confirm', extracted, receiptUrl, queueItemId })
+      } catch {
+        setState({ phase: 'queued' })
+      }
     } catch (err) {
       setState({ phase: 'error', message: err instanceof Error ? err.message : 'Upload failed' })
     }
   }
 
-  const handleSave = async (input: CreateExpenseInput) => {
+  const handleSave = async (input: CreateExpenseInput & { queueItemId?: string }) => {
     try {
       const expense = await createExpense.mutateAsync(input)
+      // Clean up queue item now that the expense is confirmed
+      if (input.queueItemId) {
+        deleteQueueItem.mutate(input.queueItemId)
+      }
       setState({ phase: 'done', expense: { amount: expense.amount, vendor: expense.vendor, date: expense.date } })
     } catch (err) {
       setState({ phase: 'error', message: err instanceof Error ? err.message : 'Failed to save expense. Please try again.' })
@@ -675,7 +776,8 @@ export function LogExpense({ onBack }: Props) {
       suggestedCategoryName: null, paymentMethod: null,
       confidence: 'low', rawText: '',
     }
-    setState({ phase: 'confirm', extracted: emptyExtracted, receiptUrl: '' })
+    // Manual entry has no queue item
+    setState({ phase: 'confirm', extracted: emptyExtracted, receiptUrl: '', queueItemId: '' })
   }
 
   return (
@@ -685,11 +787,11 @@ export function LogExpense({ onBack }: Props) {
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12,
           padding: '52px 20px 16px',
-          background: state.phase === 'capture' || state.phase === 'processing' ? '#0F0E0B' : color.parchment,
+          background: state.phase === 'capture' || state.phase === 'processing' || state.phase === 'uploading' ? '#0F0E0B' : color.parchment,
           flexShrink: 0,
         }}>
           <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-            <ChevronLeft size={20} color={state.phase === 'capture' || state.phase === 'processing' ? 'rgba(255,255,255,0.6)' : color.ink2} />
+            <ChevronLeft size={20} color={state.phase === 'capture' || state.phase === 'processing' || state.phase === 'uploading' ? 'rgba(255,255,255,0.6)' : color.ink2} />
           </button>
           <span style={{
             fontFamily: font.display, fontSize: 18, fontWeight: 600,
@@ -703,10 +805,10 @@ export function LogExpense({ onBack }: Props) {
       {/* Phase content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {state.phase === 'capture' && (
-          <CaptureScreen onCapture={handleCapture} onManual={handleManual} />
+          <CaptureScreen onFiles={handleFiles} onManual={handleManual} />
         )}
 
-        {state.phase === 'processing' && (
+        {(state.phase === 'uploading' || state.phase === 'processing') && (
           <div style={{
             background: '#0F0E0B', height: '100%', display: 'flex',
             flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16,
@@ -717,15 +819,25 @@ export function LogExpense({ onBack }: Props) {
               animation: 'spin 0.8s linear infinite',
             }} />
             <p style={{ fontFamily: font.body, fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
-              Extracting details…
+              {state.phase === 'uploading' ? 'Saving receipt…' : 'Extracting details…'}
             </p>
+            {state.phase === 'processing' && (
+              <p style={{ fontFamily: font.body, fontSize: 10, color: 'rgba(255,255,255,0.25)', textAlign: 'center', maxWidth: 220 }}>
+                Receipt is already saved — you can close the app and check back later
+              </p>
+            )}
           </div>
+        )}
+
+        {state.phase === 'queued' && (
+          <QueuedScreen onBack={onBack} />
         )}
 
         {state.phase === 'confirm' && (
           <ConfirmScreen
             extracted={state.extracted}
             receiptUrl={state.receiptUrl}
+            queueItemId={state.queueItemId}
             onSave={handleSave}
             onCancel={onBack}
             saving={createExpense.isPending}

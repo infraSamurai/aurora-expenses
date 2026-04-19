@@ -45,13 +45,16 @@ export function Reports() {
   const aiCount       = curExpenses.filter(e => e.aiExtracted).length
   const aiRate        = curExpenses.length > 0 ? Math.round((aiCount / curExpenses.length) * 100) : 0
 
-  // Fetch all months for trend — each month query is independent
+  // Fetch all months for trend — parallel queries via individual useExpenses hooks
+  // (React Query fires these concurrently; each key is independent)
   const m0 = useExpenses({ month: months[0] })
   const m1 = useExpenses({ month: months[1] })
   const m2 = useExpenses({ month: months[2] })
   const m3 = useExpenses({ month: months[3] })
   const m4 = useExpenses({ month: months[4] })
   const m5 = useExpenses({ month: months[5] })
+  // React Query already fires these in parallel at the network level —
+  // staleTime:30s means they resolve from cache when navigating back here
   const monthData = [m0, m1, m2, m3, m4, m5].map((q, i) => ({
     label: monthLabel(months[i]),
     month: months[i],
